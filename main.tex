@@ -1,0 +1,220 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+%% define page geometry (margins etc)
+\usepackage[margin=2cm]{geometry}
+
+%% URLs, hyperlinks etc
+\usepackage{hyperref}
+
+%% color package
+\usepackage[usenames,dvipsnames]{color}
+
+\title{Internship own information}
+\author{ssuidman }
+\date{February 2020}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+\subsection{starting the project information}
+
+\subsubsection{Convolutional neural network} 
+A neural network where not all neurons in a layer are connected to all neurons in the next one. This prevents overfitting and resembles for example the organization of the human visual cortex, where neurons that are closely together have similar properties. It is something like taking a photo of a small part of a picture and then of another part, etc. Then with all the small pictures the bigger picture can be recreated again (but not exactly the same normally). 
+
+
+\subsubsection{DeepLabCut}
+The algorithm can be used to detect/track animals with minimal training data (~200 frames). This is because it uses transfer learning. This is a method where a similar(/more general) problem (than the specific problem with the mice we have) has been trained with a lot of training data. The algorithm can than be trained with few video frames, which is useful in small laboratory projects such as ours. DeepLabCut is based on DeeperCut, which is of the best pose estimation algorithms. DeeperCut has been trained with ImageNet, which is a huge online database with pictures of a lot objects/animals/etc. 
+
+
+\subsubsection{Git}
+
+git clone \url{https://github.com/arnefmeyer/social_interaction_eyetracking.git}
+
+\begin{itemize}
+    \item you begin with making a map with files
+    \item with the terminal you can work around using the commands: \\
+    \begin{itemize}    
+        \item \textbf{cd  $\backslash$Users$\backslash$samsuidman$\backslash$Desktop} \\
+        To be working in the Desktop. So for example if you use the command to create a folder, then this folder is created in the Desktop folder. \\
+        \item \textbf{pwd} \\
+        Shows the present working directory. \\
+        \item \textbf{ls} \\
+        Shows the folders/files that are in the present working directory. So for example if you are in the Desktop folder, you see all the folders/files that are on your desktop. \\
+        \item \textbf{git init} \\
+        If you want to create a repository (this means that you can use git in a certain folder), you have to be in the specific pwd that you want and use this comment. \\
+        \item \textbf{git status} \\
+        Shows you what files in your folder are changed in red. \\
+        \item \textbf{git add "name of file"} \\
+        You are not sure to keep a change in git, so you add it temporarily and if you check the git status again it becomes green. \\
+        \item \textbf{git commit -m "here is the message that you want to give with your saved git changes"} \\
+        You actually save the changes in git (on your computer), so that you can re-use them if you need them.
+        
+        \item \textbf{git log} \\
+        The saved stages that you had using your project are visible here. \\
+        
+        \item yet to do: 1) how to go back to one of your previous changes. 2) how to change the master. 3) how to push your changes to a server. 4) how to pull previous changes from that server. 5) how to get to join the repository that Arne made. 6) how to 
+    \end{itemize}
+\end{itemize}
+
+
+\subsubsection{Accessing the workstation (with NVIDIA Titan X GPU)}
+
+\begin{enumerate}
+    \item Edit (or create) the ssh config file \$HOME/.ssh/config (where \$HOME is your user directory) and add the following lines \\
+    {\color{red} I used}
+    \begin{verbatim}
+    mkdir /Users/username/.ssh && chmod 700 /Users/username/.ssh    
+    \end{verbatim}
+    {\color{red} According to the internet this also means that other people can't have access to my computer} \\ (\url{https://www.linuxtopia.org/online_books/introduction_to_linux/linux_The_chmod_command.html}):
+    %
+    \begin{verbatim}
+    cd /Users/samsuidman/.ssh
+    vim config
+    \end{verbatim}
+    
+    Now you get a new small screen where you have to type:
+    
+    \begin{verbatim}
+    Host lilo
+    Hostname lilo.science.ru.nl
+    User ameyer
+    
+    Host titan
+    ProxyCommand ssh -q lilo nc -q0 131.174.140.198 22
+    \end{verbatim}
+    %
+    To end this small screen (write and exit) you have to type in:
+    
+    \begin{verbatim}
+    "escape-button"
+    :wq
+    "enter-button"
+    \end{verbatim}
+    
+    \textbf{To log in into the university try:}
+    \begin{verbatim}
+        ssh ssuidman@lilo.science.ru.nl
+        "password:" "password for science account that I made in 2017"
+    \end{verbatim}
+    \textbf{Now I have to get into titan, but that was blocked according to the ICT specialist}
+    
+    where \texttt{ameyer} needs to be replaced with your RU science user name.
+
+    \item Try to log into the workstation via ``\verb|ssh ssuidman@titan|'' (pw: )%ssuidman 
+
+    \item If this works then you can use public ssh key authentication as explained here:\\ \url{https://www.linode.com/docs/security/authentication/use-public-key-authentication-with-ssh/}
+\end{enumerate}
+
+\textbf{This is how you get in the computer}
+
+\begin{enumerate}
+    \item go to the ssh folder on your own computer
+    \begin{verbatim}
+    cd /Users/samsuidman/.ssh
+    \end{verbatim}
+    
+    \item log in to the university server
+    \begin{verbatim}
+    ssh ssuidman@lilo.science.ru.nl
+    "pw": "the password for science account that I made in 2017"
+    \end{verbatim}
+    
+    \item log in to the local computer (after this you can use commands such as "pwd, cd, ls" to navigate inside the computer)
+    \begin{verbatim}    
+    ssh ssuidman@131.174.140.198
+    "pw": ssuidman
+    cd /home/shared_data/social_interaction_eyetracking
+    \end{verbatim}
+    
+    \item exit the local copmuter
+    \begin{verbatim}
+    exit
+    \end{verbatim}
+    
+    \item exit the server of the university
+    \begin{verbatim}
+    exit 
+    \end{verbatim}
+\end{enumerate}
+
+
+\subsubsection{conda environments}
+
+\begin{itemize}
+    \item To see which python is used:
+    \begin{verbatim}
+        which python
+    \end{verbatim}
+
+    \item To create a new environment (in the python that you use):
+    \begin{verbatim}
+        conda create --name "name of environment"
+    \end{verbatim}
+    
+    \item To activate or deactivate a environment use:
+    \begin{verbatim}
+        conda activate "name of environment"
+        
+        conda deactivate
+    \end{verbatim}
+    On default the conda environment you use is (base)
+    
+    \item To see which packages a python version has use:
+    \begin{verbatim}
+    conda list
+    \end{verbatim}
+    
+    \item Creating an environment for DeepLabCut can be done by downloading the "DLC-CPU.yaml"-file (for CPU purposes) move it to 
+    \begin{verbatim}
+        /opt/anaconda3/envs/DLC-CPU.yaml    
+    \end{verbatim} 
+    Then run:
+    \begin{verbatim}
+        conda env create -f DLC-CPU.yaml
+    \end{verbatim}
+    to create the environment for deeplabcut that you want and install the neede packages for it. \\ \\
+    From now on to open the environment the following line has to be typed:
+    \begin{verbatim}
+        conda activate DLC-CPU
+    \end{verbatim}
+    
+    
+\end{itemize}
+
+
+
+\subsubsection{Pandas}
+
+\begin{itemize}
+    \item To load a h5 file (or other file) use:
+    \begin{verbatim}
+        variable = pd.read_hdf('/Users/.../... .h5')
+    \end{verbatim}
+    
+    \item To see the structure of the matrix use:
+    \begin{verbatim}
+        pd.DataFrame(variable)
+    \end{verbatim}
+    
+    \item To see the names of the columns use (printing goes automatically in PyCharm):
+    \begin{verbatim}
+        variable.columns
+        variable.columns[0]
+    \end{verbatim}
+    In this project the names of the columns are tuples ('...','...','...')
+    
+    \item To select a column you do:
+    \begin{verbatim}
+        x = variable["name of column"]
+    \end{verbatim}
+    As an example for getting the x-column of the left top marker traces of mouse M3728:
+    \begin{verbatim}
+        x = df[('DLC_resnet50_M3728_boxFeb14shuffle1_500000', 'marker_top_left', 'x')]
+    \end{verbatim}
+\end{itemize}
+
+\end{document}
