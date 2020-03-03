@@ -40,35 +40,65 @@ git clone \url{https://github.com/arnefmeyer/social_interaction_eyetracking.git}
     \begin{itemize}    
         \item \textbf{cd  $\backslash$Users$\backslash$samsuidman$\backslash$Desktop} \\
         To be working in the Desktop. So for example if you use the command to create a folder, then this folder is created in the Desktop folder. \\
+        
         \item \textbf{pwd} \\
         Shows the present working directory. \\
+        
         \item \textbf{ls} \\
         Shows the folders/files that are in the present working directory. So for example if you are in the Desktop folder, you see all the folders/files that are on your desktop. \\
+        
         \item \textbf{git init} \\
         If you want to create a repository (this means that you can use git in a certain folder), you have to be in the specific pwd that you want and use this comment. \\
+        
         \item \textbf{git status} \\
         Shows you what files in your folder are changed in red. \\
+        
         \item \textbf{git add "name of file"} \\
-        You are not sure to keep a change in git, so you add it temporarily and if you check the git status again it becomes green. \\
+        You are not sure to keep a change in git, so you add it temporarily and if you check the git status again it becomes green. If you want to add everything do:
+        \begin{verbatim}
+            git add -A
+        \end{verbatim}
+        
         \item \textbf{git commit -m "here is the message that you want to give with your saved git changes"} \\
         You actually save the changes in git (on your computer), so that you can re-use them if you need them.
         
         \item \textbf{git log} \\
         The saved stages that you had using your project are visible here. \\
         
-        \item \textbf{git remote add "name of remote" "overleaf.com/... or github.com/..."} \\
-        This way you create a remote (a place where you can pull/push things from/to). You now have short cut that you can use. vb: 
+        \item \textbf{git remote} \\
+        A remote is a place where your data is stored or where you get it from. Such as overleaf, github, etc.
+        To add a new remote do:
+        \begin{verbatim}
+            git remote add "name of new remote" "name of website"
+        \end{verbatim}
+        This way you create a remote (a place where you can pull/push things from/to). \\
+        From overleaf you have to make a few small adjustments to just the normal URL of the project-site, vb: 
         \begin{verbatim}
         git remote add overleaf https://git.overleaf.com/5e400766c64457000177ecd9
         \end{verbatim}
-        now if you type:
+        You now have short cut that you can use. If you type:
         \begin{verbatim}
             git remote
         \end{verbatim}
         you see your remotes.
-        Then if you want to pull or push somehting you can use:
+        
+        \item \textbf{git branch} \\
+        You can have different versions that you are working on. These versions are called \textit{branches} On default if you use "git init" there is a branch created named "master". You first have to "add and commit" something, or pull something, before there appear to be branches. To let the branches show, write:
         \begin{verbatim}
-            
+            git branch
+        \end{verbatim}
+        If you want to make a new branch, use:
+        \begin{verbatim}
+            git branch "name of new branch"
+        \end{verbatim}
+        To change the branch that you are working in use:
+        \begin{verbatim}
+            git checkout "name of branch"
+        \end{verbatim}
+        
+        Then if you want to pull or push something you can use:
+        \begin{verbatim}
+            git pull "name of remote" "name of branch"
         \end{verbatim}
         
         \item yet to do: 1) how to go back to one of your previous changes. 2) how to change the master. 3) how to push your changes to a server. 4) how to pull previous changes from that server. 5) how to get to join the repository that Arne made. 6) how to 
