@@ -27,3 +27,9 @@ M3728_alone_cam5_box_likelihood = M3728_alone_cam5_box[M3728_alone_cam5_box_like
 #    plt.title(title)
 #    plt.savefig("/Users/samsuidman/Desktop/likelihood_figures/{}".format(title))
 
+#with ... as ...: opens and closes a file, this is nice because otherwise the files stays opened.
+with imageio.get_reader("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database/M3728/2019_07_09/social_interaction/2019-07-09_14-55-57_Silence_box_no_enclosure/rpi_camera_5DLC_resnet50_M3728_boxFeb14shuffle1_500000_labeled.mp4") as M3728_alone_cam5_box_video:
+    M3728_alone_cam5_box_video_meta_data = M3728_alone_cam5_box_video.get_meta_data() #this contains the metadata, such as  fps (frames per second), duration, etc.
+    M3728_alone_cam5_box_video_frames = M3728_alone_cam5_box_video.count_frames() #counting the amount of frames (=6365)
+    M3728_alone_cam5_box_video_dataframe_2364 = M3728_alone_cam5_box_video.get_data(2364) #this contains the data from the 2364's frame. The max number between brackets is in this case 19497
+
