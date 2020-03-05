@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="dcc38492-32a5-4d9f-a789-3679f80c5624" name="Default Changelist" comment="" />
+    <list default="true" id="dcc38492-32a5-4d9f-a789-3679f80c5624" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/../tracking_code_sam/test_code.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tracking_code_sam/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../tracking_code_sam/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,7 +18,11 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
   <component name="ProjectId" id="1XGGrW0VUfDdsRvWXz1SsdzotRD" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showExcludedFiles" value="true" />
@@ -32,6 +40,11 @@
         <option name="useSoftWraps" value="true" />
       </console-settings>
     </option>
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
   </component>
   <component name="RunManager">
     <configuration name="DLC_Mice" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
@@ -101,7 +114,7 @@
       <workItem from="1583227842922" duration="370000" />
       <workItem from="1583228305532" duration="1747000" />
       <workItem from="1583231202720" duration="5382000" />
-      <workItem from="1583398385738" duration="10577000" />
+      <workItem from="1583398385738" duration="14434000" />
     </task>
     <servers />
   </component>
@@ -117,11 +130,11 @@
       <screen x="0" y="23" width="1280" height="713" />
     </state>
     <state x="428" y="141" key="FileChooserDialogImpl/0.23.1280.713@0.23.1280.713" timestamp="1580897182734" />
-    <state x="173" y="23" width="982" height="714" key="SettingsEditor" timestamp="1583409614245">
+    <state x="173" y="23" width="982" height="714" key="SettingsEditor" timestamp="1583413966656">
       <screen x="0" y="23" width="1280" height="714" />
     </state>
     <state x="149" y="23" width="982" height="713" key="SettingsEditor/0.23.1280.713@0.23.1280.713" timestamp="1580897213177" />
-    <state x="173" y="23" width="982" height="714" key="SettingsEditor/0.23.1280.714@0.23.1280.714" timestamp="1583409614245" />
+    <state x="173" y="23" width="982" height="714" key="SettingsEditor/0.23.1280.714@0.23.1280.714" timestamp="1583413966656" />
     <state width="500" height="445" key="SwitcherDM" timestamp="1580666190610">
       <screen x="0" y="23" width="1280" height="713" />
     </state>
