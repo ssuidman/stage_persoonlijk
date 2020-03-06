@@ -18,3 +18,4 @@ data
 import matplotlib.pyplot as plt
 plt.imshow(data)
 plt.show()
+
