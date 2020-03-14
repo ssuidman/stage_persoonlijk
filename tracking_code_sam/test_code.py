@@ -140,3 +140,78 @@ def func_low_likelihood_sequences(var_low_likelihood_values,var_low_likelihood_i
     return var_sequences
 sequences = func_low_likelihood_sequences(low_likelihood_values,low_likelihood_index,likelihood_columns)
 
+
+
+
+
+
+def func_frame_of_lowest_likelihood(var_sequences):
+    var_lowest_likelihood_index = [] #Making a list (within it a list) from the indices where a sequence has a minimal likelihood
+    var_lowest_likelihood_values = [] #Making the list with corresponding likelihoods
+    for j in var_sequences: #look at the 15 bodyparts
+        var_lowest_likelihood_index_per_bodypart = [] #look at index per bodypart
+        var_lowest_likelihood_values_per_bodypart = [] #look at the likelihood per bodypart
+        for i in j: #look at the list-sequences per bodypart
+            index_min = i.idxmin() #look at the index corresponding to the minimal likelihood in a sequence
+            likelihood_min = min(i.array) #looking at the minimal likelihood of a sequence
+            var_lowest_likelihood_index_per_bodypart.append(index_min) #add the index to the index_list per bodypart
+            var_lowest_likelihood_values_per_bodypart.append(likelihood_min) #add the likelihood to the likelihood_list per bodypart
+        var_lowest_likelihood_index.append(var_lowest_likelihood_index_per_bodypart) #add each index bodypart list to the big index list
+        var_lowest_likelihood_values.append(var_lowest_likelihood_values_per_bodypart) #add each likelihood bodypart list ot the big likelihood bodypart list
+    return(var_lowest_likelihood_index,var_lowest_likelihood_values)
+lowest_likelihood_index, lowest_likelihood_values = func_frame_of_lowest_likelihood(sequences)
+
+#Conclusion:
+#       There are 2 lists "low_likelihood_reduced_frames_index_single_frame" and
+#       "low_likelihood_reduced_frames_likelihood_single_frame". These lists
+#       contain 15 elements each (for each body part one list). The lists per bodypart contain the lowest values
+#       of likelihood per sequence (low likelihood sequence with following frames that have p<0.99).
+
+
+
+
+def func_binary(var_likelihood,var_likelihood_columns,var_threshold):
+    var_likelihood_binary = [] #Making a list for all bodyparts (len(list)=15) where if p<0.99 the value of list[i] becomes NaN and otherwise becomes 1+i (so that the lines are above eachother)
+    k=0 #place for the first line
+    for i in var_likelihood_columns: #going through each bodypart
+        var_likelihood_binary_per_bodypart = [] #making a list per bodypart where [1,NaN,NaN,1,1,...]
+        for j in var_likelihood[i]: #cloning the likelihood list of a bodypart [0.3338,0.9783,...]
+            var_likelihood_binary_per_bodypart.append(j) # " " "
+        var_likelihood_binary_per_bodypart = np.asarray(var_likelihood_binary_per_bodypart) #making type=array of it
+        var_likelihood_binary_per_bodypart[var_likelihood_binary_per_bodypart<var_threshold] = np.NaN #setting p<0.99 to not a number
+        var_likelihood_binary_per_bodypart[var_likelihood_binary_per_bodypart>var_threshold] = len(var_likelihood_columns)-k #setting p>0.99 to 15 (or 14,13,...,2,1) so that all lines can be plotted above eachother)
+        var_likelihood_binary.append(var_likelihood_binary_per_bodypart) #adding the list of one bodypart to the bigger list
+        k+=1 #setting k+1 so that the next bodypart comes at the line above/below the other
+    return(var_likelihood_binary)
+
+likelihood_binary = func_binary(likelihood,likelihood_columns,threshold)
+
+
+
+
+for j in range(len(likelihood_columns)): #going through each body part
+    plt.plot(likelihood_binary[j], label="{}".format(likelihood_columns[j][1])) #plot the line of the binary likelihood
+    plt.legend() #making the legend
+plt.savefig('/Users/samsuidman/Desktop/likelihood_figures/plaatje.png',dpi=1200) #saving the picture at high quality
+
+
+
+fig,(ax1,ax2,ax3) = plt.subplots(nrows=1,ncols=3)
+for j in range(len(likelihood_columns)): #going through each body part
+    ax2.plot(likelihood_binary[j], label="{}".format(likelihood_columns[j][1])) #plot the line of the binary likelihood
+    ax3.plot(list(likelihood[likelihood_columns[j]].index / len(likelihood[likelihood_columns[j]])), likelihood_binary[j], label="{}".format(likelihood_columns[j][1]))  # plot the line of the binary likelihood
+    ax1.plot([0,1],[0,0], label="{}".format(likelihood_columns[j][1]))
+    ax1.legend() #making the legend
+fig.savefig('/Users/samsuidman/Desktop/likelihood_figures/plaatje.png',dpi=1200) #saving the picture at high quality
+
+
+def func_plot(var_likelihood_binary,var_likelihood_columns,var_figure_save_path):
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3,figsize=(10.0,4.8))
+    for j in range(len(var_likelihood_columns)):  # going through each body part
+        ax2.plot(var_likelihood_binary[j],label="{}".format(likelihood_columns[j][1]))  # plot the line of the binary likelihood
+        ax3.plot(list(var_likelihood[var_likelihood_columns[j]].index / len(var_likelihood[var_likelihood_columns[j]])),var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
+        ax1.plot([0, 1], [0, 0], label="{}".format(var_likelihood_columns[j][1]))
+        ax1.legend()  # making the legend
+    fig.savefig(var_figure_save_path,dpi=1200)  # saving the picture at high quality
+
+func_plot(likelihood_binary,likelihood_columns,'/Users/samsuidman/Desktop/likelihood_figures/plaatje.png')
