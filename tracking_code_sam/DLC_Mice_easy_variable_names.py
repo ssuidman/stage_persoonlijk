@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import imageio
+import os.path
 import time
 
 t1 = time.time()
@@ -32,7 +33,7 @@ likelihood = mice[likelihood_columns]
 #    title = "mice_{}_{}".format(i[2],i[1])
 #    plt.title(title)
 #    plt.savefig("/Users/samsuidman/Desktop/likelihood_figures/{}".format(title))
-
+# !!!!!!!!! THIS IS NOT NECESSARY ANYMORE !!!!!!!!!!!!!
 
 
 
