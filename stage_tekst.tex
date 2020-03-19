@@ -54,7 +54,7 @@ git clone \url{https://github.com/arnefmeyer/social_interaction_eyetracking.git}
         Shows you what files in your folder are changed in red. \\
         
         \item \textbf{git add "name of file"} \\
-        You are not sure to keep a change in git, so you add it temporarily and if you check the git status again it becomes green. If you want to add everything do:
+        You are not sure to keep a change in git, so you add it temporarily and if you check the git status again it becomes green. If you want to add everything (all) do:
         \begin{verbatim}
             git add -A
         \end{verbatim}
@@ -226,7 +226,7 @@ git clone \url{https://github.com/arnefmeyer/social_interaction_eyetracking.git}
     
     \item Creating an environment for DeepLabCut can be done by downloading the "DLC-CPU.yaml"-file (for CPU purposes) move it to 
     \begin{verbatim}
-        /opt/anaconda3/envs/DLC-CPU.yaml    
+        /Users/samsuidman/opt/anaconda3/envs/DLC-CPU.yaml    
     \end{verbatim} 
     Then run:
     \begin{verbatim}
@@ -271,6 +271,83 @@ git clone \url{https://github.com/arnefmeyer/social_interaction_eyetracking.git}
     \begin{verbatim}
         x = df[('DLC_resnet50_M3728_boxFeb14shuffle1_500000', 'marker_top_left', 'x')]
     \end{verbatim}
+\end{itemize}
+
+
+
+\subsubsection{Running Deeplabcut on my laptop}
+
+\begin{itemize}
+    \item \textbf{activate environment} \\
+    To have all the modules do you have to activate the DLC environment for the CPU: \\
+    \begin{verbatim}
+        conda activate DLC-CPU
+    \end{verbatim}
+
+    \item \textbf{create project} \\
+    An example of how a project is created is:
+    \begin{verbatim}
+        pythonw tracking_dlc.py create-project --recursive --experimenter sam --frames 20 ...
+    \end{verbatim}
+    \begin{verbatim}
+        --markers eyelid M3729 /Users/samsuidman/Desktop/files_from_computer_arne ...
+    \end{verbatim}
+    \begin{verbatim}
+        /shared_data/social_interaction_eyetracking/tracking /Users/samsuidman/Desktop ...
+    \end{verbatim}
+    \begin{verbatim}
+        /files_from_computer_arne/shared_data/social_interaction_eyetracking/database/M3729
+    \end{verbatim}
+    
+    On my laptop there is the mistake that there are video files created in the "videos" folder, but videos are not actual files. That's why you have to add videos manually. This has to be done using DLC, because otherwise functions won't work.
+    
+    \item \textbf{add extra video files} \\
+    Before adding the video files, make sure they are named so that you know: (mouse , alone/together , camera). \\
+    To add extra video files you first have to open the pythonw:
+    \begin{verbatim}
+        pythonw
+    \end{verbatim}
+    Then, add a video file ("location of video file",["location of config.yaml"]) do:
+    \begin{verbatim}
+        deeplabcut.add_new_videos("/Users/samsuidman/Desktop/files_from_computer_arne ...
+    \end{verbatim}
+    \begin{verbatim}
+        /shared_data/social_interaction_eyetracking/tracking/M3729_eyelid-sam-2020-03-18 ...
+    \end{verbatim}
+    \begin{verbatim}
+        /config.yaml",["/Users/samsuidman/Desktop/files_from_computer_arne/shared_data ...
+    \end{verbatim}
+    \begin{verbatim}
+        /social_interaction_eyetracking/database/M3729/2019_07_08/social_interaction ...
+    \end{verbatim}
+    \begin{verbatim}
+        /2019-07-08_12-15-38_Silence_box_no_enclosure_M3728/add_new_videos_deeplabcut ...
+    \end{verbatim}
+    \begin{verbatim}
+        /M3729_rpi_camera_4_M3728.mp4"])
+    \end{verbatim}
+    
+    \item \textbf{Extract frames} \\
+    To extract the right (20 or 25) frames via kmeans, do:
+    \begin{verbatim}
+        deeplabcut.extract_frames("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data ...
+    \end{verbatim}
+    \begin{verbatim}
+        /social_interaction_eyetracking/tracking/M3729_eyelid-sam-2020-03-18/config.yaml" ...
+    \end{verbatim}
+    \begin{verbatim}
+        ,"automatic","kmeans",crop=True)
+    \end{verbatim}
+    
+    \item \textbf{Labeling frames} \\
+    Now that the right frames are extracted, you can now label the frames:
+    \begin{verbatim}
+        deeplabcut.label_frames("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data ...
+    \end{verbatim}
+    \begin{verbatim}
+        /social_interaction_eyetracking/tracking/M3729_eyelid-sam-2020-03-18/config.yaml")
+    \end{verbatim}
+    Make sure that you save the file in the end before you quit.
 \end{itemize}
 
 \end{document}
