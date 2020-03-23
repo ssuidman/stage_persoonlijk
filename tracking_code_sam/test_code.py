@@ -215,3 +215,19 @@ def func_plot(var_likelihood_binary,var_likelihood_columns,var_figure_save_path)
     fig.savefig(var_figure_save_path,dpi=1200)  # saving the picture at high quality
 
 func_plot(likelihood_binary,likelihood_columns,'/Users/samsuidman/Desktop/likelihood_figures/plaatje.png')
+
+
+
+
+def func_npz_reader(var_path_to_npz_file):
+    var_npz_file = np.load(var_path_to_npz_file)
+    return var_npz_file
+
+
+
+
+def func_h5_timestamps_length(var_h5_file,var_npz_file):
+    for i in
+
+
+

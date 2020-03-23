@@ -17,27 +17,52 @@ threshold = 0.99
 
 
 
-#reading the tracking files (h5), these variables now contain a matrix, 3 elements per
-#bodypart (x,y,likelihood). There are 10 bodyparts, so in total there are 30 elements.
-#Each element got almost 20000 values, which are coordinate-values (for x and y) or
-#likelihoodvalues
 def func_path(var_working_path): #returns an absolute working path as a variable
     var_abs_working_path = os.path.abspath(var_working_path)
     return var_abs_working_path
 
-mice_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database/M3728/2019_07_09/social_interaction/2019-07-09_14-55-57_Silence_box_no_enclosure/rpi_camera_5DLC_resnet50_M3728_miceFeb14shuffle1_1030000.h5")
-mice_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database/M3728/2019_07_09/social_interaction/2019-07-09_14-55-57_Silence_box_no_enclosure/rpi_camera_5DLC_resnet50_M3728_miceFeb14shuffle1_1030000_labeled.mp4")
+mice_cam5_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam5/mice/rpi_camera_5DLC_resnet50_M3728_miceFeb14shuffle1_1030000.h5")
+mice_cam5_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam5/rpi_camera_5.npz")
+mice_cam5_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam5/tracked_video/mice/rpi_camera_5DLC_resnet50_M3728_miceFeb14shuffle1_1030000_labeled.mp4")
+mice_cam6_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam6/mice/rpi_camera_6DLC_resnet50_M3728_miceFeb14shuffle1_1030000.h5")
+mice_cam6_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam6/rpi_camera_6.npz")
+mice_cam6_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam6/tracked_video/mice/rpi_camera_6DLC_resnet50_M3728_miceFeb14shuffle1_1030000_labeled.mp4")
+eyelid_left_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam3/rpi_camera_3DLC_resnet50_M3728_eyelidMar18shuffle1_200000.h5")
+eyelid_left_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam3/rpi_camera_3.npz")
+eyelid_left_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam3/raw_video/rpi_camera_3.mp4")
+eyelid_right_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4DLC_resnet50_M3728_eyelidMar18shuffle1_200000.h5")
+eyelid_right_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4.npz")
+eyelid_right_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/raw_video/rpi_camera_4.mp4")
 figure_save_path = func_path("/Users/samsuidman/Desktop/likelihood_figures/figure.png")
 
 
 
 
-
+#reading the tracking files (h5), these variables now contain a matrix, 3 elements per
+#bodypart (x,y,likelihood). There are 10 bodyparts, so in total there are 30 elements.
+#Each element got almost 20000 values, which are coordinate-values (for x and y) or
+#likelihoodvalues
 def func_h5_reader(var_path_to_h5_file): #reads a h5 file using the path to the file as a variable
     var_h5_file = pd.read_hdf(var_path_to_h5_file)
     return var_h5_file
 
-mice_h5 = func_h5_reader(mice_h5_path)
+mice_cam5_h5 = func_h5_reader(mice_cam5_h5_path)
+mice_cam6_h5 = func_h5_reader(mice_cam6_h5_path)
+eyelid_left_h5 = func_h5_reader(eyelid_left_h5_path)
+eyelid_right_h5 = func_h5_reader(eyelid_right_h5_path)
+
+
+
+
+
+def func_npz_reader(var_path_to_npz_file):
+    var_npz_file = np.load(var_path_to_npz_file)
+    return var_npz_file
+
+mice_cam5_npz = func_npz_reader(mice_cam5_npz_path)
+mice_cam6_npz = func_npz_reader(mice_cam6_npz_path)
+eyelid_left_npz = func_npz_reader(eyelid_left_npz_path)
+eyelid_right_npz = func_npz_reader(eyelid_right_npz_path)
 
 
 
@@ -50,7 +75,10 @@ def func_likelihood_columns(var_mice_h5): #takes a h5_file with (x,y,likelihood)
             var_likelihood_columns.append(i)
     return var_likelihood_columns
 
-likelihood_columns = func_likelihood_columns(mice_h5)
+mice_cam5_likelihood_columns = func_likelihood_columns(mice_cam5_h5)
+mice_cam6_likelihood_columns = func_likelihood_columns(mice_cam6_h5)
+eyelid_left_likelihood_columns = func_likelihood_columns(eyelid_left_h5)
+eyelid_right_likelihood_columns = func_likelihood_columns(eyelid_right_h5)
 
 
 
@@ -60,7 +88,10 @@ def func_likelihood(var_likelihood_columns,var_mice_h5): #takes a list h5 file w
     var_likelihood = var_mice_h5[var_likelihood_columns] # make a list of likelihoodvalues per tracking object (so this is a matrix)
     return var_likelihood
 
-likelihood = func_likelihood(likelihood_columns,mice_h5)
+mice_cam5_likelihood = func_likelihood(mice_cam5_likelihood_columns,mice_cam5_h5)
+mice_cam6_likelihood = func_likelihood(mice_cam6_likelihood_columns,mice_cam6_h5)
+eyelid_left_likelihood = func_likelihood(eyelid_left_likelihood_columns,eyelid_left_h5)
+eyelid_right_likelihood = func_likelihood(eyelid_right_likelihood_columns,eyelid_right_h5)
 
 
 
@@ -73,7 +104,10 @@ def func_video(var_video_path): #takes a path to a video and returns the metadat
     #    var_video_dataframe_2364 = var_video.get_data(2364) #this contains the data from the 2364's frame. The max number between brackets is in this case 19497
     return var_video_meta_data, var_video_frames
 
-video_info = func_video(mice_video_path)
+mice_cam5_video_info = func_video(mice_cam5_video_path)
+mice_cam6_video_info = func_video(mice_cam6_video_path)
+eyelid_left_video_info = func_video(eyelid_left_video_path)
+eyelid_right_video_info = func_video(eyelid_right_video_path)
 
 
 
@@ -89,23 +123,34 @@ def func_low_likelihood(var_likelihood,var_likelihood_columns,threshold): #takes
         var_low_likelihood_index.append(var_low_likelihood_index_per_bodypart)
     return(var_low_likelihood_values,var_low_likelihood_index)
 
-low_likelihood_values,low_likelihood_index = func_low_likelihood(likelihood,likelihood_columns,threshold)
+mice_cam5_low_likelihood_values,mice_cam5_low_likelihood_index = func_low_likelihood(mice_cam5_likelihood,mice_cam5_likelihood_columns,threshold)
+mice_cam6_low_likelihood_values,mice_cam6_low_likelihood_index = func_low_likelihood(mice_cam6_likelihood,mice_cam6_likelihood_columns,threshold)
+eyelid_left_low_likelihood_values,eyelid_left_low_likelihood_index = func_low_likelihood(eyelid_left_likelihood,eyelid_left_likelihood_columns,threshold)
+eyelid_right_low_likelihood_values,eyelid_right_low_likelihood_index = func_low_likelihood(eyelid_right_likelihood,eyelid_right_likelihood_columns,threshold)
 
 
 
 
 
-#To plot bodypart i (0-14) you can do:
-#plt.plot(low_likelihood_index[i])
-#title = "{}".format(likelihood_columns[i][1])
-#plt.title(title)
-#plt.show()
+def func_high_likelihood(var_likelihood,var_likelihood_columns,threshold): #takes likelihood-matrix (it is matrix, because of multiple bodyparts), a likelihood-column-name array and a threshold and returns a matrix of low likelihoods and a matrix of low likelihood indices
+    var_high_likelihood_values = []
+    var_high_likelihood_index = []
+    for i in var_likelihood_columns:
+        var_high_likelihood_values_per_bodypart = var_likelihood[i].array[var_likelihood[i].array>threshold]
+        var_high_likelihood_index_per_bodypart = var_likelihood[i].index[var_likelihood[i].array>threshold]
+        var_high_likelihood_values.append(var_high_likelihood_values_per_bodypart)
+        var_high_likelihood_index.append(var_high_likelihood_index_per_bodypart)
+    return(var_high_likelihood_values,var_high_likelihood_index)
+
+mice_cam5_high_likelihood_values,mice_cam5_high_likelihood_index = func_high_likelihood(mice_cam5_likelihood,mice_cam5_likelihood_columns,threshold)
+mice_cam6_high_likelihood_values,mice_cam6_high_likelihood_index = func_high_likelihood(mice_cam6_likelihood,mice_cam6_likelihood_columns,threshold)
+eyelid_left_high_likelihood_values,eyelid_left_high_likelihood_index = func_high_likelihood(eyelid_left_likelihood,eyelid_left_likelihood_columns,threshold)
+eyelid_right_high_likelihood_values,eyelid_right_high_likelihood_index = func_high_likelihood(eyelid_right_likelihood,eyelid_right_likelihood_columns,threshold)
 
 
 
 
-
-def func_low_likelihood_sequences(var_low_likelihood_values,var_low_likelihood_index,var_likelihood_columns): #takes a list of low-likelihood-values, low-likelihood-indices and likelihood-column-names. Returns a list (15 elements for 15 bodyparts), where for each element there is a list with sequences of low-likelihood-frames. These for each sequences you can call (sequencelist.index) for an array of indices or (sequencelist.array) for an array of likelihoods.
+def func_low_likelihood_sequences(var_low_likelihood_values,var_low_likelihood_index,var_likelihood,var_likelihood_columns): #takes a list of low-likelihood-values, low-likelihood-indices and likelihood-column-names. Returns a list (15 elements for 15 bodyparts), where for each element there is a list with sequences of low-likelihood-frames. These for each sequences you can call (sequencelist.index) for an array of indices or (sequencelist.array) for an array of likelihoods.
 
     var_sequences_index = []
     for i in range(len(var_likelihood_columns)):
@@ -125,13 +170,51 @@ def func_low_likelihood_sequences(var_low_likelihood_values,var_low_likelihood_i
     for j in range(len(var_likelihood_columns)):  # getting across all bodypart-indices (0-14)
         var_sequences_values_per_bodypart = []  # likelihood list per bodypart
         for k in var_sequences_index[j]:  # look at a specific list with subsequent indices in a bodypart list
-            subsequent_likelihood = likelihood[likelihood_columns[j]][k]  # make a small list of likelihoods that match the small list of indices
-            var_sequences_values_per_bodypart.append(subsequent_likelihood)  # add this small likelihood list to the list of one body part
+            var_subsequent_likelihood = var_likelihood[var_likelihood_columns[j]][k]  # make a small list of likelihoods that match the small list of indices
+            var_sequences_values_per_bodypart.append(var_subsequent_likelihood)  # add this small likelihood list to the list of one body part
         var_sequences.append(var_sequences_values_per_bodypart)  # add the one body part list to the list of all bodyparts
 
     return var_sequences
 
-sequences = func_low_likelihood_sequences(low_likelihood_values,low_likelihood_index,likelihood_columns)
+mice_cam5_sequences = func_low_likelihood_sequences(mice_cam5_low_likelihood_values,mice_cam5_low_likelihood_index,mice_cam5_likelihood,mice_cam5_likelihood_columns)
+mice_cam6_sequences = func_low_likelihood_sequences(mice_cam6_low_likelihood_values,mice_cam6_low_likelihood_index,mice_cam6_likelihood,mice_cam6_likelihood_columns)
+eyelid_left_sequences = func_low_likelihood_sequences(eyelid_left_low_likelihood_values,eyelid_left_low_likelihood_index,eyelid_left_likelihood,eyelid_left_likelihood_columns)
+eyelid_right_sequences = func_low_likelihood_sequences(eyelid_right_low_likelihood_values,eyelid_right_low_likelihood_index,eyelid_right_likelihood,eyelid_right_likelihood_columns)
+
+
+
+
+
+def func_high_likelihood_sequences(var_high_likelihood_values,var_high_likelihood_index,var_likelihood,var_likelihood_columns): #takes a list of low-likelihood-values, low-likelihood-indices and likelihood-column-names. Returns a list (15 elements for 15 bodyparts), where for each element there is a list with sequences of low-likelihood-frames. These for each sequences you can call (sequencelist.index) for an array of indices or (sequencelist.array) for an array of likelihoods.
+
+    var_sequences_index = []
+    for i in range(len(var_likelihood_columns)):
+        var_sequences_index_per_bodypart = []  # making a list for one body part. Several lists of indices of subsequent high likelihoods are stored in this bigger list
+        for var_first_sequence_frame in var_high_likelihood_index[i]:  # go through the list of all high likelihood frames
+            if var_first_sequence_frame - 1 not in var_high_likelihood_index[i]:  # this is so that no lists are made that contain the same elements as another list
+                var_second_variable = var_first_sequence_frame  # set a second variable to avoid conflict with the first one
+                var_sequence = []  # making a list where subsequent high likelihood indices can be stored in
+                var_sequence.append(var_second_variable)  # append the first high likelihood value to this list
+                while var_second_variable + 1 in var_high_likelihood_index[i]:  # if the subsequent index of the high likelihood list is also in the high likelihood list, then look at this next index
+                    var_second_variable += 1  # look at the next index
+                    var_sequence.append(var_second_variable)  # add the next index also to the list
+                var_sequences_index_per_bodypart.append(var_sequence)
+        var_sequences_index.append(var_sequences_index_per_bodypart)
+
+    var_sequences = []  # list where all reduced likelihoods for all bodyparts come in
+    for j in range(len(var_likelihood_columns)):  # getting across all bodypart-indices (0-14)
+        var_sequences_values_per_bodypart = []  # likelihood list per bodypart
+        for k in var_sequences_index[j]:  # look at a specific list with subsequent indices in a bodypart list
+            var_subsequent_likelihood = var_likelihood[var_likelihood_columns[j]][k]  # make a small list of likelihoods that match the small list of indices
+            var_sequences_values_per_bodypart.append(var_subsequent_likelihood)  # add this small likelihood list to the list of one body part
+        var_sequences.append(var_sequences_values_per_bodypart)  # add the one body part list to the list of all bodyparts
+
+    return var_sequences
+
+mice_cam5_high_sequences = func_high_likelihood_sequences(mice_cam5_high_likelihood_values,mice_cam5_high_likelihood_index,mice_cam5_likelihood,mice_cam5_likelihood_columns)
+mice_cam6_high_sequences = func_high_likelihood_sequences(mice_cam6_high_likelihood_values,mice_cam6_high_likelihood_index,mice_cam6_likelihood,mice_cam6_likelihood_columns)
+eyelid_left_high_sequences = func_high_likelihood_sequences(eyelid_left_high_likelihood_values,eyelid_left_high_likelihood_index,eyelid_left_likelihood,eyelid_left_likelihood_columns)
+eyelid_right_high_sequences = func_high_likelihood_sequences(eyelid_right_high_likelihood_values,eyelid_right_high_likelihood_index,eyelid_right_likelihood,eyelid_right_likelihood_columns)
 
 
 
@@ -152,7 +235,10 @@ def func_frame_of_lowest_likelihood(var_sequences): #Takes a list matrix (becaus
         var_lowest_likelihood_values.append(var_lowest_likelihood_values_per_bodypart) #add each likelihood bodypart list ot the big likelihood bodypart list
     return(var_lowest_likelihood_index,var_lowest_likelihood_values)
 
-lowest_likelihood_index, lowest_likelihood_values = func_frame_of_lowest_likelihood(sequences)
+mice_cam5_lowest_likelihood_index, mice_cam5_lowest_likelihood_values = func_frame_of_lowest_likelihood(mice_cam5_sequences)
+mice_cam6_lowest_likelihood_index, mice_cam6_lowest_likelihood_values = func_frame_of_lowest_likelihood(mice_cam6_sequences)
+eyelid_left_lowest_likelihood_index, eyelid_left_lowest_likelihood_values = func_frame_of_lowest_likelihood(eyelid_left_sequences)
+eyelid_right_lowest_likelihood_index, eyelid_right_lowest_likelihood_values = func_frame_of_lowest_likelihood(eyelid_right_sequences)
 
 
 
@@ -172,22 +258,43 @@ def func_binary(var_likelihood,var_likelihood_columns,var_threshold): #Takes the
         k+=1 #setting k+1 so that the next bodypart comes at the line above/below the other
     return(var_likelihood_binary)
 
-likelihood_binary = func_binary(likelihood,likelihood_columns,threshold)
+mice_cam5_likelihood_binary = func_binary(mice_cam5_likelihood,mice_cam5_likelihood_columns,threshold)
+mice_cam6_likelihood_binary = func_binary(mice_cam6_likelihood,mice_cam6_likelihood_columns,threshold)
+eyelid_left_likelihood_binary = func_binary(eyelid_left_likelihood,eyelid_left_likelihood_columns,threshold)
+eyelid_right_likelihood_binary = func_binary(eyelid_right_likelihood,eyelid_right_likelihood_columns,threshold)
 
 
 
 
 
-def func_plot(var_likelihood_binary,var_likelihood,var_likelihood_columns,var_figure_save_path):
+def func_plot_show(var_likelihood_binary,var_likelihood,var_likelihood_columns):
     fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3,figsize=(10.0,4.8))
     for j in range(len(var_likelihood_columns)):  # going through each body part
-        ax2.plot(var_likelihood_binary[j],label="{}".format(likelihood_columns[j][1]))  # plot the line of the binary likelihood
+        ax2.plot(var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
+        ax3.plot(list(var_likelihood[var_likelihood_columns[j]].index / len(var_likelihood[var_likelihood_columns[j]])),var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
+        ax1.plot([0, 1], [0, 0], label="{}".format(var_likelihood_columns[j][1]))
+        ax1.legend()  # making the legend
+    fig.show()  # saving the picture at high quality
+
+func_plot_show(mice_cam5_likelihood_binary,mice_cam5_likelihood,mice_cam5_likelihood_columns)
+func_plot_show(mice_cam6_likelihood_binary,mice_cam6_likelihood,mice_cam6_likelihood_columns)
+func_plot_show(eyelid_left_likelihood_binary,eyelid_left_likelihood,eyelid_left_likelihood_columns)
+func_plot_show(eyelid_right_likelihood_binary,eyelid_right_likelihood,eyelid_right_likelihood_columns)
+
+
+
+
+
+def func_plot_save(var_likelihood_binary,var_likelihood,var_likelihood_columns,var_figure_save_path):
+    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3,figsize=(10.0,4.8))
+    for j in range(len(var_likelihood_columns)):  # going through each body part
+        ax2.plot(var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
         ax3.plot(list(var_likelihood[var_likelihood_columns[j]].index / len(var_likelihood[var_likelihood_columns[j]])),var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
         ax1.plot([0, 1], [0, 0], label="{}".format(var_likelihood_columns[j][1]))
         ax1.legend()  # making the legend
     fig.savefig(var_figure_save_path,dpi=1200)  # saving the picture at high quality
 
-func_plot(likelihood_binary,likelihood,likelihood_columns,figure_save_path)
+#func_plot_save(mice_cam5_likelihood_binary,mice_cam5_likelihood,mice_cam5_likelihood_columns,figure_save_path)
 
 
 
@@ -198,6 +305,6 @@ t2 = time.time()
 print('The time it took for running is {} seconds'.format(t2-t1))
 
 
-#the script works if I enter everything above here at once (and takes about 23 seconds to run)
+#the script works if I enter everything above here at once (and takes about than 10 seconds to run)
 
 
