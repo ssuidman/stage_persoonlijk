@@ -15,10 +15,10 @@ def func_path(var_working_path): #returns an absolute working path as a variable
     var_abs_working_path = os.path.abspath(var_working_path)
     return var_abs_working_path
 
-eyelid_left_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam3/rpi_camera_3DLC_resnet50_M3728_eyelidMar18shuffle1_200000.h5")
-eyelid_right_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4DLC_resnet50_M3728_eyelidMar18shuffle1_200000.h5")
-eyelid_left_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam3/rpi_camera_3.npz")
-eyelid_right_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4.npz")
+eyelid_left_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3729/together/cam3/rpi_camera_3DLC_resnet50_M3729_eyelidMar18shuffle1_500000.h5")
+eyelid_right_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3729/together/cam4/rpi_camera_4DLC_resnet50_M3729_eyelidMar18shuffle1_500000.h5")
+eyelid_left_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3729/together/cam3/rpi_camera_3.npz")
+eyelid_right_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3729/together/cam4/rpi_camera_4.npz")
 
 
 def func_h5_reader(var_path_to_h5_file): #reads a h5 file using the path to the file as a variable
@@ -128,10 +128,6 @@ eyelid_right_high_sequences = func_high_likelihood_sequences(eyelid_right_high_l
 
 
 
-
-
-
-
 def func_low_likelihood(var_likelihood,var_likelihood_columns,threshold): #takes likelihood-matrix (it is matrix, because of multiple bodyparts), a likelihood-column-name array and a threshold and returns a matrix of low likelihoods and a matrix of low likelihood indices
     var_low_likelihood_values = []
     var_low_likelihood_index = []
@@ -182,7 +178,7 @@ eyelid_right_high_sequences = func_low_likelihood_sequences(eyelid_right_low_lik
 
 
 fig_left, (ax1,ax2,ax3) = plt.subplots(nrows=1,ncols=3)
-fig_left.suptitle('eyelid_left_M7328_M7329')
+fig_left.suptitle('eyelid_left_M7329_M7328')
 ax1.plot(eyelid_left_likelihood[eyelid_left_likelihood_columns[2]])
 ax1.set_title('{}'.format(eyelid_left_likelihood_columns[2][1]))
 ax2.plot(eyelid_left_likelihood[eyelid_left_likelihood_columns[3]])
@@ -194,7 +190,7 @@ fig_left.show()
 
 
 fig_right, (ax1,ax2,ax3) = plt.subplots(nrows=1,ncols=3)
-fig_right.suptitle('eyelid_right_M7328_M7329')
+fig_right.suptitle('eyelid_right_M7329_M7328')
 ax1.plot(eyelid_right_likelihood[eyelid_right_likelihood_columns[2]])
 ax1.set_title('{}'.format(eyelid_right_likelihood_columns[2][1]))
 ax2.plot(eyelid_right_likelihood[eyelid_right_likelihood_columns[3]])
@@ -202,3 +198,38 @@ ax2.set_title('{}'.format(eyelid_right_likelihood_columns[3][1]))
 ax3.plot(eyelid_right_likelihood[eyelid_right_likelihood_columns[4]])
 ax3.set_title('{}'.format(eyelid_right_likelihood_columns[4][1]))
 fig_right.show()
+
+
+
+
+
+
+def func_compressed_sequences(var_high_sequences,var_continued_frames): #takes 2 things: 1) a big list with 15 elements (each bodypart), each with a list of sequences (sequences are pandas.series.Series) 2) the maximum amount of frames (plus 1) that can be between to sequences when merging sequences together. The function returns a big list containing lists with sequences that are merged together.
+    var_high_sequences_compressed = []
+    for var_high_sequences_per_bodypart in var_high_sequences:
+        var_index_list = [] #making a big list, where all the indices are coming from the lists that should be merged together
+        var_double_indices = [] #here is a list that can be used to see if a certain list(-index) isn't already added to another list
+        for i in range(len(var_high_sequences_per_bodypart)): #iterate over the sequences (the indices i of them)
+            if i not in var_double_indices: #check if i not in double list
+                var_index_list_temp = [] #make a temporary index list, where indices of sequences that have to be merged together come into
+                var_index_list_temp.append(i) # add the (first) index i
+                for j in range(len(var_high_sequences_per_bodypart)): #make a new iteration starting from i
+                    if i+j < len(var_high_sequences_per_bodypart)-1: #check if new iteration is not out of range
+                        var_difference = var_high_sequences_per_bodypart[i+j+1].index[0]-var_high_sequences_per_bodypart[i+j].index[len(var_high_sequences_per_bodypart[i+j])-1] #set variable of difference between lists
+                        if var_difference < var_continued_frames: #check if the difference is not bigger than the difference that you want
+                            var_index_list_temp.append(i+j+1) #add the index of a list that should be merged together to the temporary index list
+                            var_double_indices.append(i+j+1) #make sure that this index would not be added to another list too
+                    if var_difference >= var_continued_frames: #if the difference is bigger than the difference you want, then from here on you want to begin a new big list with merged smaller lists
+                        break #so you break
+                var_index_list.append(var_index_list_temp) #you add the list of merged lists (the indices) to the big list
+        var_high_sequences_compressed_per_bodypart = [] #you make a list where you add the actual values of the panda.series.Series(-indices) to
+        for i in var_index_list: #you iterate over the big list that contains small lists of compressed sequence-lists
+            var_high_sequences_compressed_per_bodypart_temp = [] #you look at one of those compressed (merged) sequences
+            for j in i: #you look at an index value of one sequence
+                var_high_sequences_compressed_per_bodypart_temp.extend(var_high_sequences_per_bodypart[j].index) #you merge the sequences that should be together
+            var_high_sequences_compressed_per_bodypart.append(var_high_sequences_compressed_per_bodypart_temp) #you add this list of compressed sequences to the big list
+        var_high_sequences_compressed.append(var_high_sequences_compressed_per_bodypart)
+    return(var_high_sequences_compressed) #you give back a big list that contains lists of compressed sequences
+
+eyelid_left_compressed_sequences = func_compressed_sequences(eyelid_left_high_sequences,200)
+eyelid_right_closed_eye_sequences = func_compressed_sequences(eyelid_right_high_sequences,200)
