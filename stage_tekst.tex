@@ -285,6 +285,7 @@ git clone \url{https://github.com/arnefmeyer/social_interaction_eyetracking.git}
     \end{verbatim}
 
     \item \textbf{create project} \\
+    Go to the folder where the tracking\_dlc.py file is.
     An example of how a project is created is:
     \begin{verbatim}
         pythonw tracking_dlc.py create-project --recursive --experimenter sam --frames 20 ...
@@ -305,7 +306,9 @@ git clone \url{https://github.com/arnefmeyer/social_interaction_eyetracking.git}
     Before adding the video files, make sure they are named so that you know: (mouse , alone/together , camera). \\
     To add extra video files you first have to open the pythonw:
     \begin{verbatim}
+        conda activate DLC-CPU
         pythonw
+        import deeplabcut
     \end{verbatim}
     Then, add a video file ("location of video file",["location of config.yaml"]) do:
     \begin{verbatim}
