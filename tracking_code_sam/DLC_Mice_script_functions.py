@@ -30,7 +30,7 @@ mice_cam6_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_
 eyelid_left_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam3/rpi_camera_3DLC_resnet50_M3728_eyelidMar18shuffle1_200000.h5")
 eyelid_left_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam3/rpi_camera_3.npz")
 eyelid_left_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam3/raw_video/rpi_camera_3.mp4")
-eyelid_right_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4DLC_resnet50_M3728_eyelidMar18shuffle1_200000.h5")
+eyelid_right_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4DLC_resnet50_M3728_eyelidMar25shuffle1_1030000.h5")
 eyelid_right_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4.npz")
 eyelid_right_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/raw_video/rpi_camera_4.mp4")
 figure_save_path = func_path("/Users/samsuidman/Desktop/likelihood_figures/figure.png")
@@ -54,8 +54,7 @@ eyelid_right_h5 = func_h5_reader(eyelid_right_h5_path)
 
 
 
-
-def func_npz_reader(var_path_to_npz_file):
+def func_npz_reader(var_path_to_npz_file): #for information type "mice_cam5_npz.files"
     var_npz_file = np.load(var_path_to_npz_file)
     return var_npz_file
 
@@ -334,11 +333,34 @@ def func_plot_save(var_likelihood_binary,var_likelihood,var_likelihood_columns,v
 
 
 
+def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per_bodypart): #input is the video path and the compressed sequences FOR ONE BODYPART!!!!! (so "eyelid_left_compressed_sequences[4]" for the closed eyelid)
+    var_output_path = os.path.splitext(var_video_path)[0] + '_converted_video' + '.mp4'
+    var_reader = imageio.get_reader(var_video_path)
+
+    var_test_frame = var_reader.get_data(0)
+    var_black_frame = np.zeros([var_test_frame.shape[0], var_test_frame.shape[1], var_test_frame.shape[2]], dtype=np.uint8)
+    var_black_frame.fill(255)  # or img[:] = 255
+
+    var_fps = var_reader.get_meta_data()['fps']
+    var_writer = imageio.get_writer(var_output_path,fps=var_fps)
+
+    for var_sequence in var_compressed_sequences_per_bodypart:
+        for var_index in var_sequence:
+            var_frame = var_reader.get_data(var_index)
+            var_writer.append_data(var_frame)
+        for i in range(int(var_fps/3)):
+            var_writer.append_data(var_black_frame)
+#func_video_writer('/Users/samsuidman/Desktop/video_test_map/rpi_camera_4.mp4','/Users/samsuidman/Downloads/zwart_foto.jpg',eyelid_right_compressed_sequences[4])
+
+
+
+
+
 t2 = time.time()
 
 print('The time it took for running is {} seconds'.format(t2-t1))
 
 
-#the script works if I enter everything above here at once (and takes about than 10 seconds to run)
+#the script works if I enter everything above here at once (and takes about than 90 seconds to run)
 
 

@@ -268,3 +268,47 @@ eyelid_left_compressed_sequences = func_compressed_sequences(eyelid_left_high_se
 eyelid_right_closed_eye_sequences = func_compressed_sequences(eyelid_right_high_sequences,200)
 
 
+reader = imageio.get_reader('/Users/samsuidman/Desktop/video_test_map/rpi_camera_4.mp4')
+writer = imageio.get_writer('/Users/samsuidman/Desktop/video_test_map/rpi_camera_4_writer.mp4',fps=2)
+frame = []
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][0]))
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][1]))
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][2]))
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][3]))
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][4]))
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][5]))
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][6]))
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][7]))
+frame.append(reader.get_data(eyelid_left_compressed_sequences[4][1][8]))
+writer.append_data(frame[0])
+writer.append_data(frame[1])
+writer.append_data(frame[2])
+writer.append_data(frame[3])
+writer.append_data(frame[4])
+writer.append_data(frame[5])
+writer.append_data(frame[6])
+writer.append_data(frame[7])
+writer.append_data(frame[8])
+writer.close()
+
+
+
+def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per_bodypart): #input is the video path and the compressed sequences FOR ONE BODYPART!!!!! (so "eyelid_left_compressed_sequences[4]" for the closed eyelid)
+    var_output_path = os.path.splitext(var_video_path)[0] + '_converted_video' + '.mp4'
+    var_reader = imageio.get_reader(var_video_path)
+
+    var_test_frame = var_reader.get_data(0)
+    var_black_frame = np.zeros([var_test_frame.shape[0], var_test_frame.shape[1], var_test_frame.shape[2]], dtype=np.uint8)
+    var_black_frame.fill(255)  # or img[:] = 255
+
+    var_fps = var_reader.get_meta_data()['fps']
+    var_writer = imageio.get_writer(var_output_path,fps=var_fps)
+
+    for var_sequence in var_compressed_sequences_per_bodypart:
+        for var_index in var_sequence:
+            var_frame = var_reader.get_data(var_index)
+            var_writer.append_data(var_frame)
+        for i in range(int(var_fps/3)):
+            var_writer.append_data(var_black_frame)
+func_video_writer('/Users/samsuidman/Desktop/video_test_map/rpi_camera_4.mp4','/Users/samsuidman/Downloads/zwart_foto.jpg',eyelid_right_compressed_sequences[4])
+

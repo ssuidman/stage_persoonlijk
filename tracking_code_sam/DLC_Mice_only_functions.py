@@ -220,7 +220,25 @@ def func_plot_save(var_likelihood_binary,var_likelihood,var_likelihood_columns,v
         ax1.legend()  # making the legend
     fig.savefig(var_figure_save_path,dpi=1200)  # saving the picture at high quality
 
-#func_plot_save(mice_cam5_likelihood_binary,mice_cam5_likelihood,mice_cam5_likelihood_columns,figure_save_path)
+
+
+def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per_bodypart): #input is the video path and the compressed sequences FOR ONE BODYPART!!!!! (so "eyelid_left_compressed_sequences[4]" for the closed eyelid)
+    var_output_path = os.path.splitext(var_video_path)[0] + '_converted_video' + '.mp4'
+    var_reader = imageio.get_reader(var_video_path)
+
+    var_test_frame = var_reader.get_data(0)
+    var_black_frame = np.zeros([var_test_frame.shape[0], var_test_frame.shape[1], var_test_frame.shape[2]], dtype=np.uint8)
+    var_black_frame.fill(255)  # or img[:] = 255
+
+    var_fps = var_reader.get_meta_data()['fps']
+    var_writer = imageio.get_writer(var_output_path,fps=var_fps)
+
+    for var_sequence in var_compressed_sequences_per_bodypart:
+        for var_index in var_sequence:
+            var_frame = var_reader.get_data(var_index)
+            var_writer.append_data(var_frame)
+        for i in range(int(var_fps/3)):
+            var_writer.append_data(var_black_frame)
 
 
 

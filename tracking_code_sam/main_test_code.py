@@ -233,3 +233,42 @@ def func_compressed_sequences(var_high_sequences,var_continued_frames): #takes 2
 
 eyelid_left_compressed_sequences = func_compressed_sequences(eyelid_left_high_sequences,200)
 eyelid_right_closed_eye_sequences = func_compressed_sequences(eyelid_right_high_sequences,200)
+
+...:
+
+
+def func_video(var_video_path,var_compressed_sequences_per_bodypart):  # takes a path to a video and returns the metadata and the amount of frames of the video (as tuple)
+    with imageio.get_reader(var_video_path) as var_video:  # with ... as ...: opens and closes a file, this is nice because otherwise the files stays opened.
+        var_video_meta_data = var_video.get_meta_data()  # this contains the metadata, such as  fps (frames per second), duration, etc.
+        var_video_frames_count = var_video.count_frames()  # counting the amount of frames (=19498)
+        var_video_dataframes = []
+        for var_sequence in var_compressed_sequences_per_bodypart:
+
+            var_video.get_data(2364) #this contains the data from the 2364's frame. The max number between brackets is in this case 19497
+    return var_video_meta_data, var_video_frames_count
+
+
+
+
+
+
+def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per_bodypart): #input is the video path and the compressed sequences FOR ONE BODYPART!!!!! (so "eyelid_left_compressed_sequences[4]" for the closed eyelid)
+    var_output_path = os.path.splitext(var_video_path)[0] + '_converted_video' + '.mp4'
+    var_reader = imageio.get_reader(var_video_path)
+
+    var_test_frame = var_reader.get_data(0)
+    var_black_frame = np.zeros([var_test_frame.shape[0], var_test_frame.shape[1], var_test_frame.shape[2]], dtype=np.uint8)
+    var_black_frame.fill(255)  # or img[:] = 255
+
+    var_fps = var_reader.get_meta_data()['fps']
+    var_writer = imageio.get_writer(var_output_path,fps=var_fps)
+
+    for var_sequence in var_compressed_sequences_per_bodypart:
+        for var_index in var_sequence:
+            var_frame = var_reader.get_data(var_index)
+            var_writer.append_data(var_frame)
+        for i in range(int(var_fps/3)):
+            var_writer.append_data(var_black_frame)
+#func_video_writer('/Users/samsuidman/Desktop/video_test_map/rpi_camera_4.mp4','/Users/samsuidman/Downloads/zwart_foto.jpg',eyelid_right_compressed_sequences[4])
+
+
