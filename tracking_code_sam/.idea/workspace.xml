@@ -137,7 +137,9 @@
       <workItem from="1584970223919" duration="13446000" />
       <workItem from="1585043739924" duration="14628000" />
       <workItem from="1586372703759" duration="858000" />
-      <workItem from="1586427401702" duration="12472000" />
+      <workItem from="1586427401702" duration="12617000" />
+      <workItem from="1586444988826" duration="384000" />
+      <workItem from="1586512937378" duration="6060000" />
     </task>
     <servers />
   </component>
@@ -172,12 +174,12 @@
     <state x="170" y="70" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.713@0.23.1280.713" timestamp="1583399128712" />
     <state x="168" y="91" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.714@0.23.1280.714" timestamp="1583231664835" />
     <state x="170" y="70" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.716@0.23.1280.716" timestamp="1585069041390" />
-    <state x="319" y="218" key="com.intellij.ide.util.TipDialog" timestamp="1586427590441">
-      <screen x="0" y="23" width="1280" height="713" />
+    <state x="461" y="301" key="com.intellij.ide.util.TipDialog" timestamp="1586513045832">
+      <screen x="0" y="23" width="1280" height="716" />
     </state>
     <state x="319" y="218" width="642" height="329" key="com.intellij.ide.util.TipDialog/0.23.1280.713@0.23.1280.713" timestamp="1586427590441" />
-    <state x="319" y="212" key="com.intellij.ide.util.TipDialog/0.23.1280.714@0.23.1280.714" timestamp="1585043739778" />
-    <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.716@0.23.1280.716" timestamp="1584205728848" />
+    <state x="319" y="212" key="com.intellij.ide.util.TipDialog/0.23.1280.714@0.23.1280.714" timestamp="1586444988867" />
+    <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.716@0.23.1280.716" timestamp="1586513045832" />
     <state x="319" y="219" key="com.intellij.ide.util.TipDialog/0.23.1280.717@0.23.1280.717" timestamp="1584019918249" />
     <state x="429" y="304" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1584223450550">
       <screen x="0" y="23" width="1280" height="714" />

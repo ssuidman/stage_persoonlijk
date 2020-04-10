@@ -222,24 +222,37 @@ def func_plot_save(var_likelihood_binary,var_likelihood,var_likelihood_columns,v
 
 
 
-def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per_bodypart): #input is the video path and the compressed sequences FOR ONE BODYPART!!!!! (so "eyelid_left_compressed_sequences[4]" for the closed eyelid)
-    var_output_path = os.path.splitext(var_video_path)[0] + '_converted_video' + '.mp4'
-    var_reader = imageio.get_reader(var_video_path)
+def func_smooth_sequences(var_compressed_sequences):
+    var_smooth_sequences = []
+    for var_compressed_sequences_per_bodypart in var_compressed_sequences: #look at a specific bodypart
+        var_smooth_sequences_per_bodypart = []
+        for var_sequence in var_compressed_sequences_per_bodypart:
+            var_first_sequence_index = var_sequence[0]
+            var_last_sequence_index = var_sequence[len(var_sequence)-1]
+            var_smooth_single_sequence = list(range(var_first_sequence_index,var_last_sequence_index+1))
+            var_smooth_sequences_per_bodypart.append(var_smooth_single_sequence)
+        var_smooth_sequences.append(var_smooth_sequences_per_bodypart)
+    return var_smooth_sequences
 
-    var_test_frame = var_reader.get_data(0)
-    var_black_frame = np.zeros([var_test_frame.shape[0], var_test_frame.shape[1], var_test_frame.shape[2]], dtype=np.uint8)
+
+
+def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per_bodypart): #input is the video path and the compressed sequences FOR ONE BODYPART!!!!! (so "eyelid_left_compressed_sequences[4]" for the closed eyelid)
+    var_output_path = os.path.splitext(var_video_path)[0] + '_converted_video' + '.mp4' #choose the output path for the video
+    var_reader = imageio.get_reader(var_video_path) #read the video
+
+    var_test_frame = var_reader.get_data(0) #look at the data of the test frame
+    var_black_frame = np.zeros([var_test_frame.shape[0], var_test_frame.shape[1], var_test_frame.shape[2]], dtype=np.uint8) #set the white/black frame to the same size as the test frame
     var_black_frame.fill(255)  # or img[:] = 255
 
-    var_fps = var_reader.get_meta_data()['fps']
-    var_writer = imageio.get_writer(var_output_path,fps=var_fps)
+    var_fps = var_reader.get_meta_data()['fps'] #look at the amount of frames per second of the original video
+    var_writer = imageio.get_writer(var_output_path,fps=var_fps) #let the new video have the same amount of fps as the original video
 
-    for var_sequence in var_compressed_sequences_per_bodypart:
-        for var_index in var_sequence:
-            var_frame = var_reader.get_data(var_index)
-            var_writer.append_data(var_frame)
-        for i in range(int(var_fps/3)):
-            var_writer.append_data(var_black_frame)
-
+    for var_sequence in var_compressed_sequences_per_bodypart: #look at a sequence
+        for var_index in var_sequence: #look at one frame index
+            var_frame = var_reader.get_data(var_index) #read this specific frame
+            var_writer.append_data(var_frame) #write this frame to the video
+        for i in range(int(var_fps/3)): #make sure that a 1/3 of one second a white/black frame is shown between different sequences.
+            var_writer.append_data(var_black_frame) #so then you add the black frames
 
 
 t2 = time.time()

@@ -272,3 +272,18 @@ def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per
 #func_video_writer('/Users/samsuidman/Desktop/video_test_map/rpi_camera_4.mp4','/Users/samsuidman/Downloads/zwart_foto.jpg',eyelid_right_compressed_sequences[4])
 
 
+
+def func_smooth_sequences(var_compressed_sequences):
+    var_smooth_sequences = []
+    for var_compressed_sequences_per_bodypart in var_compressed_sequences: #look at a specific bodypart
+        var_smooth_sequences_per_bodypart = []
+        for var_sequence in var_compressed_sequences_per_bodypart:
+            var_first_sequence_index = var_sequence[0]
+            var_last_sequence_index = var_sequence[len(var_sequence)-1]
+            var_smooth_single_sequence = list(range(var_first_sequence_index,var_last_sequence_index+1))
+            var_smooth_sequences_per_bodypart.append(var_smooth_single_sequence)
+        var_smooth_sequences.append(var_smooth_sequences_per_bodypart)
+    return var_smooth_sequences
+
+eyelid_left_smooth_sequences = func_smooth_sequences(eyelid_left_compressed_sequences)
+eyelid_right_smooth_sequences = func_smooth_sequences(eyelid_right_compressed_sequences)

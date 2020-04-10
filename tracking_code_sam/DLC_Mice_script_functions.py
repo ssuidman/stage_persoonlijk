@@ -11,7 +11,8 @@ t1 = time.time()
 
 
 
-threshold = 0.99
+threshold = 0.99 #the threshold where you tell that the tracking is done well
+time_between_frames = 30 #the amount of frames that can be between two eye closure events, before you say it is one event. (fps is around 60)
 
 
 
@@ -246,8 +247,8 @@ def func_compressed_sequences(var_high_sequences,var_continued_frames): #takes 2
         var_high_sequences_compressed.append(var_high_sequences_compressed_per_bodypart)
     return(var_high_sequences_compressed) #you give back a big list that contains lists of compressed sequences
 
-eyelid_left_compressed_sequences = func_compressed_sequences(eyelid_left_high_sequences,200)
-eyelid_right_compressed_sequences = func_compressed_sequences(eyelid_right_high_sequences,200)
+eyelid_left_compressed_sequences = func_compressed_sequences(eyelid_left_high_sequences,time_between_frames)
+eyelid_right_compressed_sequences = func_compressed_sequences(eyelid_right_high_sequences,time_between_frames)
 
 
 
@@ -309,10 +310,10 @@ def func_plot_show(var_likelihood_binary,var_likelihood,var_likelihood_columns):
         ax1.legend()  # making the legend
     fig.show()  # saving the picture at high quality
 
-func_plot_show(mice_cam5_likelihood_binary,mice_cam5_likelihood,mice_cam5_likelihood_columns)
-func_plot_show(mice_cam6_likelihood_binary,mice_cam6_likelihood,mice_cam6_likelihood_columns)
-func_plot_show(eyelid_left_likelihood_binary,eyelid_left_likelihood,eyelid_left_likelihood_columns)
-func_plot_show(eyelid_right_likelihood_binary,eyelid_right_likelihood,eyelid_right_likelihood_columns)
+#func_plot_show(mice_cam5_likelihood_binary,mice_cam5_likelihood,mice_cam5_likelihood_columns)
+#func_plot_show(mice_cam6_likelihood_binary,mice_cam6_likelihood,mice_cam6_likelihood_columns)
+#func_plot_show(eyelid_left_likelihood_binary,eyelid_left_likelihood,eyelid_left_likelihood_columns)
+#func_plot_show(eyelid_right_likelihood_binary,eyelid_right_likelihood,eyelid_right_likelihood_columns)
 
 
 
@@ -333,25 +334,45 @@ def func_plot_save(var_likelihood_binary,var_likelihood,var_likelihood_columns,v
 
 
 
-def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per_bodypart): #input is the video path and the compressed sequences FOR ONE BODYPART!!!!! (so "eyelid_left_compressed_sequences[4]" for the closed eyelid)
-    var_output_path = os.path.splitext(var_video_path)[0] + '_converted_video' + '.mp4'
-    var_reader = imageio.get_reader(var_video_path)
+def func_smooth_sequences(var_compressed_sequences): #takes the compressed sequences for all body parts and return smooths sequences for all bodyparts
+    var_smooth_sequences = [] #smooth sequences for all bodyparts
+    for var_compressed_sequences_per_bodypart in var_compressed_sequences: #look at a specific bodypart
+        var_smooth_sequences_per_bodypart = [] #make a list for specific bodypart
+        for var_sequence in var_compressed_sequences_per_bodypart: #look at a sequence for one bodypart
+            var_first_sequence_index = var_sequence[0] #look at the first index in de list
+            var_last_sequence_index = var_sequence[len(var_sequence)-1] #look at the last index in the list
+            var_smooth_single_sequence = list(range(var_first_sequence_index,var_last_sequence_index+1)) #make an integers list that goes from the first to the last index
+            var_smooth_sequences_per_bodypart.append(var_smooth_single_sequence) #add this smooth sequence to the bodypart list
+        var_smooth_sequences.append(var_smooth_sequences_per_bodypart) #add the bodypart list to the list for all bodyparts
+    return var_smooth_sequences
 
-    var_test_frame = var_reader.get_data(0)
-    var_black_frame = np.zeros([var_test_frame.shape[0], var_test_frame.shape[1], var_test_frame.shape[2]], dtype=np.uint8)
+eyelid_left_smooth_sequences = func_smooth_sequences(eyelid_left_compressed_sequences)
+eyelid_right_smooth_sequences = func_smooth_sequences(eyelid_right_compressed_sequences)
+
+
+
+
+
+def func_video_writer(var_video_path,var_compressed_sequences_per_bodypart): #input is the video path and the compressed sequences FOR ONE BODYPART!!!!! (so "eyelid_left_compressed_sequences[4]" for the closed eyelid)
+    var_output_path = os.path.splitext(var_video_path)[0] + '_converted_video' + '.mp4' #choose the output path for the video
+    var_reader = imageio.get_reader(var_video_path) #read the video
+
+    var_test_frame = var_reader.get_data(0) #look at the data of the test frame
+    var_black_frame = np.zeros([var_test_frame.shape[0], var_test_frame.shape[1], var_test_frame.shape[2]], dtype=np.uint8) #set the white/black frame to the same size as the test frame
     var_black_frame.fill(255)  # or img[:] = 255
 
-    var_fps = var_reader.get_meta_data()['fps']
-    var_writer = imageio.get_writer(var_output_path,fps=var_fps)
+    var_fps = var_reader.get_meta_data()['fps'] #look at the amount of frames per second of the original video
+    var_writer = imageio.get_writer(var_output_path,fps=var_fps) #let the new video have the same amount of fps as the original video
 
-    for var_sequence in var_compressed_sequences_per_bodypart:
-        for var_index in var_sequence:
-            var_frame = var_reader.get_data(var_index)
-            var_writer.append_data(var_frame)
-        for i in range(int(var_fps/3)):
-            var_writer.append_data(var_black_frame)
-#func_video_writer('/Users/samsuidman/Desktop/video_test_map/rpi_camera_4.mp4','/Users/samsuidman/Downloads/zwart_foto.jpg',eyelid_right_compressed_sequences[4])
+    for var_sequence in var_compressed_sequences_per_bodypart: #look at a sequence
+        for var_index in var_sequence: #look at one frame index
+            var_frame = var_reader.get_data(var_index) #read this specific frame
+            var_writer.append_data(var_frame) #write this frame to the video
+        for i in range(int(var_fps/2)): #make sure that a 1/3 of one second a white/black frame is shown between different sequences.
+            var_writer.append_data(var_black_frame) #so then you add the black frames
 
+#func_video_writer(eyelid_left_video_path ,eyelid_left_smooth_sequences[4])
+#func_video_writer(eyelid_right_video_path,eyelid_right_smooth_sequences[4])
 
 
 
