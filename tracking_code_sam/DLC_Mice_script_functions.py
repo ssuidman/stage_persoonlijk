@@ -4,6 +4,7 @@ import pandas as pd
 import imageio
 import os.path
 import time
+from scipy.interpolate import interp1d
 
 t1 = time.time()
 
@@ -34,7 +35,7 @@ eyelid_left_video_path = func_path("/Users/samsuidman/Desktop/files_from_compute
 eyelid_right_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4DLC_resnet50_M3728_eyelidMar25shuffle1_1030000.h5")
 eyelid_right_npz_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam4/rpi_camera_4.npz")
 eyelid_right_video_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/raw_video/rpi_camera_4.mp4")
-figure_save_path = func_path("/Users/samsuidman/Desktop/likelihood_figures/figure.png")
+figure_save_path = func_path("/Users/samsuidman/Desktop/likelihood_figures")
 
 
 
@@ -63,6 +64,18 @@ mice_cam5_npz = func_npz_reader(mice_cam5_npz_path)
 mice_cam6_npz = func_npz_reader(mice_cam6_npz_path)
 eyelid_left_npz = func_npz_reader(eyelid_left_npz_path)
 eyelid_right_npz = func_npz_reader(eyelid_right_npz_path)
+
+
+
+
+def func_timestamps(var_mice_npz): #takes a npz-file and returns timestamps array
+    var_mice_timestamps = var_mice_npz["timestamps"]
+    return var_mice_timestamps
+
+mice_cam5_timestamps = func_timestamps(mice_cam5_npz)
+mice_cam6_timestamps = func_timestamps(mice_cam6_npz)
+eyelid_left_timestamps = func_timestamps(eyelid_left_npz)
+eyelid_right_timestamps = func_timestamps(eyelid_right_npz)
 
 
 
@@ -336,15 +349,19 @@ def func_plot_show(var_likelihood_binary,var_likelihood,var_likelihood_columns):
 
 
 def func_plot_save(var_likelihood_binary,var_likelihood,var_likelihood_columns,var_figure_save_path):
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3,figsize=(10.0,4.8))
+    var_fig, (var_ax1, var_ax2, var_ax3) = plt.subplots(nrows=1, ncols=3,figsize=(10.0,4.8))
+    var_title = "/figure.png"
     for j in range(len(var_likelihood_columns)):  # going through each body part
-        ax2.plot(var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
-        ax3.plot(list(var_likelihood[var_likelihood_columns[j]].index / len(var_likelihood[var_likelihood_columns[j]])),var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
-        ax1.plot([0, 1], [0, 0], label="{}".format(var_likelihood_columns[j][1]))
-        ax1.legend()  # making the legend
-    fig.savefig(var_figure_save_path,dpi=1200)  # saving the picture at high quality
+        var_ax2.plot(var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
+        var_ax3.plot(list(var_likelihood[var_likelihood_columns[j]].index / len(var_likelihood[var_likelihood_columns[j]])),var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
+        var_ax1.plot([0, 1], [0, 0], label="{}".format(var_likelihood_columns[j][1]))
+        var_ax1.legend()  # making the legend
+    var_fig.savefig(var_figure_save_path+var_title,dpi=1200)  # saving the picture at high quality
 
 #func_plot_save(mice_cam5_likelihood_binary,mice_cam5_likelihood,mice_cam5_likelihood_columns,figure_save_path)
+#func_plot_save(mice_cam6_likelihood_binary,mice_cam6_likelihood,mice_cam6_likelihood_columns,figure_save_path)
+#func_plot_save(eyelid_left_likelihood_binary,eyelid_left_likelihood,eyelid_left_likelihood_columns,figure_save_path)
+#func_plot_save(eyelid_right_likelihood_binary,eyelid_right_likelihood,eyelid_right_likelihood_columns,figure_save_path)
 
 
 
@@ -392,6 +409,31 @@ def func_video_writer(var_video_path,var_compressed_sequences_per_bodypart): #in
 
 
 
+
+
+def func_x_y_eyelid_plot(var_mice_timestamps, var_mice_x_y, var_mice_x_y_columns, var_fig_path,var_mice_cam5): #this function takes for one camera the timestamps, the x- or y-h5-file, column file of x,y , the path to save the figure and a string with "eyelid_left" for example as title.
+    var_t = var_mice_timestamps #copying the timestamps as simpler variable
+    var_x_y_interpolated = [] #get for x or y a list per bodypart where the interpolated values are in.
+    for var_column_per_bodypart in var_mice_x_y_columns: #look at one bodypart
+        var_x_y_per_bodypart = var_mice_x_y[var_column_per_bodypart].array.__array__()[:len(var_mice_timestamps)] #get the x data for one bodypart
+        var_f = interp1d(var_t, var_x_y_per_bodypart) #make an interpolation function with the data
+        var_x_y_interpolated_per_bodypart = var_f(var_t) #fill in the time and get interpolated x of y values
+        var_x_y_interpolated.append(var_x_y_interpolated_per_bodypart) #add one bodypart to the big list
+
+    var_fig, var_ax = plt.subplots(nrows=len(var_mice_x_y_columns), ncols=1, sharex=True) #make a figure with different plot with shared x values
+    var_title = var_mice_cam5 + "_" + var_mice_x_y_columns[0][2] #make the title for the figure and saving path
+    var_fig.suptitle(var_title) #give the title to the figure
+    for var_i in range(len(var_ax)): #look at all the bodypart axes.
+        var_ax[var_i].plot(var_t, var_x_y_interpolated[var_i]) #plot (t,x) where x (or y) is interpolated
+        var_ax[var_i].set_title(var_mice_x_y_columns[var_i][1]) #set the title to the bodypart (nasal edge for example)
+        var_ax[var_i].set_ylabel("time") #give every
+    var_ax[len(var_ax)-1].set_xlabel(var_mice_x_y_columns[len(var_ax)-1][2])
+    var_fig.savefig(var_fig_path + "/" + var_title, dpi=1200)
+
+#func_x_y_eyelid_plot(eyelid_left_timestamps, eyelid_left_x, eyelid_left_x_columns,figure_save_path,"eyelid_left")
+#func_x_y_eyelid_plot(eyelid_left_timestamps, eyelid_left_y, eyelid_left_y_columns,figure_save_path,"eyelid_left")
+#func_x_y_eyelid_plot(eyelid_right_timestamps, eyelid_right_x, eyelid_right_x_columns,figure_save_path,"eyelid_right")
+#func_x_y_eyelid_plot(eyelid_right_timestamps, eyelid_right_y, eyelid_right_y_columns,figure_save_path,"eyelid_right")
 
 t2 = time.time()
 

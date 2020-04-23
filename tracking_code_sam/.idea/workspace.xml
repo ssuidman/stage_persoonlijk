@@ -5,7 +5,7 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DLC_Mice_only_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/DLC_Mice_only_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DLC_Mice_script_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/DLC_Mice_script_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_test_code.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_test_code.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_code.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_code.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -141,7 +141,7 @@
       <workItem from="1586512937378" duration="6145000" />
       <workItem from="1587565654369" duration="1476000" />
       <workItem from="1587568399931" duration="2387000" />
-      <workItem from="1587633247226" duration="2008000" />
+      <workItem from="1587633247226" duration="12642000" />
     </task>
     <servers />
   </component>
@@ -187,11 +187,11 @@
       <screen x="0" y="23" width="1280" height="714" />
     </state>
     <state x="429" y="304" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.23.1280.714@0.23.1280.714" timestamp="1584223450550" />
-    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup" timestamp="1586440987351">
+    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup" timestamp="1587648252916">
       <screen x="0" y="23" width="1280" height="714" />
     </state>
     <state x="372" y="265" width="670" height="676" key="search.everywhere.popup/0.23.1280.713@0.23.1280.713" timestamp="1580826531367" />
-    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup/0.23.1280.714@0.23.1280.714" timestamp="1586440987351" />
+    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup/0.23.1280.714@0.23.1280.714" timestamp="1587648252916" />
     <state x="372" y="266" width="670" height="679" key="search.everywhere.popup/0.23.1280.716@0.23.1280.716" timestamp="1585066080445" />
   </component>
 </project>

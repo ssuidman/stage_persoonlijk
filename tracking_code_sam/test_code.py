@@ -341,3 +341,25 @@ def func_indices_to_timestamps(var_index_sequences):
         for var_index_single_sequence in var_index_sequences_per_bodypart:
 
 
+
+
+def func_x_y_eyelid_plot(var_mice_timestamps, var_mice_x_y, var_mice_x_y_columns, var_fig_path,var_mice_cam5):
+    var_t = var_mice_timestamps
+    var_x_y_interpolated = []
+    for var_column_per_bodypart in var_mice_x_y_columns:
+        var_x_y_per_bodypart = var_mice_x_y[var_column_per_bodypart].array.__array__()[:len(var_mice_timestamps)]
+        var_f = interp1d(var_t, var_x_y_per_bodypart)
+        var_x_y_interpolated_per_bodypart = var_f(var_t)
+        var_x_y_interpolated.append(var_x_y_interpolated_per_bodypart)
+
+    var_fig, var_ax = plt.subplots(nrows=len(var_mice_x_y_columns), ncols=1, sharex=True)
+    var_title = var_mice_cam5 + "_" + var_mice_x_y_columns[0][2]
+    var_fig.suptitle(var_title)
+    for var_i in range(len(var_ax)):
+        var_ax[var_i].plot(var_t, var_x_y_interpolated[var_i])
+        var_ax[var_i].set_title(var_mice_x_y_columns[var_i][1])
+        var_ax[var_i].set_ylabel("time")
+    var_ax[len(var_ax)-1].set_xlabel(var_mice_x_y_columns[len(var_ax)-1][2])
+    var_fig.savefig(var_fig_path + "/" + var_title, dpi=1200)
+
+func_x_y_eyelid_plot(eyelid_left_timestamps, eyelid_left_x, eyelid_left_x_columns,figure_save_path,"eyelid_left")

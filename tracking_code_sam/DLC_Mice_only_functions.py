@@ -4,6 +4,7 @@ import pandas as pd
 import imageio
 import os.path
 import time
+from scipy.interpolate import interp1d
 
 t1 = time.time()
 
@@ -31,6 +32,12 @@ def func_h5_reader(var_path_to_h5_file): #reads a h5 file using the path to the 
 def func_npz_reader(var_path_to_npz_file): #reads a npz file using the path to the file as a variable
     var_npz_file = np.load(var_path_to_npz_file)
     return var_npz_file
+
+
+
+def func_timestamps(var_mice_npz): #takes a npz-file and returns timestamps array
+    var_mice_timestamps = var_mice_npz["timestamps"]
+    return var_mice_timestamps
 
 
 
@@ -253,6 +260,30 @@ def func_video_writer(var_video_path,var_black_path,var_compressed_sequences_per
             var_writer.append_data(var_frame) #write this frame to the video
         for i in range(int(var_fps/3)): #make sure that a 1/3 of one second a white/black frame is shown between different sequences.
             var_writer.append_data(var_black_frame) #so then you add the black frames
+
+
+
+def func_x_y_eyelid_plot(var_mice_timestamps, var_mice_x_y, var_mice_x_y_columns, var_fig_path,var_mice_cam5): #this function takes for one camera the timestamps, the x- or y-h5-file, column file of x,y , the path to save the figure and a string with "eyelid_left" for example as title.
+    var_t = var_mice_timestamps #copying the timestamps as simpler variable
+    var_x_y_interpolated = [] #get for x or y a list per bodypart where the interpolated values are in.
+    for var_column_per_bodypart in var_mice_x_y_columns: #look at one bodypart
+        var_x_y_per_bodypart = var_mice_x_y[var_column_per_bodypart].array.__array__()[:len(var_mice_timestamps)] #get the x data for one bodypart
+        var_f = interp1d(var_t, var_x_y_per_bodypart) #make an interpolation function with the data
+        var_x_y_interpolated_per_bodypart = var_f(var_t) #fill in the time and get interpolated x of y values
+        var_x_y_interpolated.append(var_x_y_interpolated_per_bodypart) #add one bodypart to the big list
+
+    var_fig, var_ax = plt.subplots(nrows=len(var_mice_x_y_columns), ncols=1, sharex=True) #make a figure with different plot with shared x values
+    var_title = var_mice_cam5 + "_" + var_mice_x_y_columns[0][2] #make the title for the figure and saving path
+    var_fig.suptitle(var_title) #give the title to the figure
+    for var_i in range(len(var_ax)): #look at all the bodypart axes.
+        var_ax[var_i].plot(var_t, var_x_y_interpolated[var_i]) #plot (t,x) where x (or y) is interpolated
+        var_ax[var_i].set_title(var_mice_x_y_columns[var_i][1]) #set the title to the bodypart (nasal edge for example)
+        var_ax[var_i].set_ylabel("time") #give every
+    var_ax[len(var_ax)-1].set_xlabel(var_mice_x_y_columns[len(var_ax)-1][2])
+    var_fig.savefig(var_fig_path + "/" + var_title, dpi=1200)
+
+
+
 
 
 t2 = time.time()
