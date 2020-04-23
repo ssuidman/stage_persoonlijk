@@ -34,18 +34,18 @@ def func_npz_reader(var_path_to_npz_file): #reads a npz file using the path to t
 
 
 
-def func_likelihood_columns(var_mice_h5): #takes a h5_file with (x,y,likelihood)-data (including column names) and returns a list of the likelihood column names
-    var_likelihood_columns = [] #make a list of likelihood column names (this is a vector)
+def func_x_y_likelihood_columns(var_mice_h5,var_x_y_likelihood): #takes 2 things: 1) a h5_file with (x,y,likelihood)-data (including column names) 2) a string that says "x","y","likelihood" (what kind of column names you want) and returns a list of the x, the y or the likelihood column names
+    var_x_y_likelihood_columns = [] #make a list of likelihood column names (this is a vector)
     for i in var_mice_h5.columns:
-        if i[2] == 'likelihood':
-            var_likelihood_columns.append(i)
-    return var_likelihood_columns
+        if i[2] == var_x_y_likelihood:
+            var_x_y_likelihood_columns.append(i)
+    return var_x_y_likelihood_columns
 
 
 
-def func_likelihood(var_likelihood_columns,var_mice_h5): #takes a list h5 file with (x,y,likelihood)-data and a list of likelihood-column-names and returns a matrix of only the likelihood-data labeled by the column names
-    var_likelihood = var_mice_h5[var_likelihood_columns] # make a list of likelihoodvalues per tracking object (so this is a matrix)
-    return var_likelihood
+def func_x_y_likelihood(var_x_y_likelihood_columns,var_mice_h5): #takes a list h5 file with (x,y,likelihood)-data and a list of x- ,y- or likelihood-column-names and returns a matrix of only the data labeled by the column names
+    var_x_y_likelihood = var_mice_h5[var_x_y_likelihood_columns] # make a list of x-, y- or likelihood-values per tracking object (so this is a matrix)
+    return var_x_y_likelihood
 
 
 

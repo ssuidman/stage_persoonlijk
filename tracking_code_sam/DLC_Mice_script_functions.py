@@ -68,30 +68,46 @@ eyelid_right_npz = func_npz_reader(eyelid_right_npz_path)
 
 
 
-def func_likelihood_columns(var_mice_h5): #takes a h5_file with (x,y,likelihood)-data (including column names) and returns a list of the likelihood column names
-    var_likelihood_columns = [] #make a list of likelihood column names (this is a vector)
+def func_x_y_likelihood_columns(var_mice_h5,var_x_y_likelihood): #takes 2 things: 1) a h5_file with (x,y,likelihood)-data (including column names) 2) a string that says "x","y","likelihood" (what kind of column names you want) and returns a list of the x, the y or the likelihood column names
+    var_x_y_likelihood_columns = [] #make a list of likelihood column names (this is a vector)
     for i in var_mice_h5.columns:
-        if i[2] == 'likelihood':
-            var_likelihood_columns.append(i)
-    return var_likelihood_columns
+        if i[2] == var_x_y_likelihood:
+            var_x_y_likelihood_columns.append(i)
+    return var_x_y_likelihood_columns
 
-mice_cam5_likelihood_columns = func_likelihood_columns(mice_cam5_h5)
-mice_cam6_likelihood_columns = func_likelihood_columns(mice_cam6_h5)
-eyelid_left_likelihood_columns = func_likelihood_columns(eyelid_left_h5)
-eyelid_right_likelihood_columns = func_likelihood_columns(eyelid_right_h5)
+mice_cam5_likelihood_columns = func_x_y_likelihood_columns(mice_cam5_h5,"likelihood")
+mice_cam6_likelihood_columns = func_x_y_likelihood_columns(mice_cam6_h5,"likelihood")
+eyelid_left_likelihood_columns = func_x_y_likelihood_columns(eyelid_left_h5,"likelihood")
+eyelid_right_likelihood_columns = func_x_y_likelihood_columns(eyelid_right_h5,"likelihood")
+mice_cam5_x_columns = func_x_y_likelihood_columns(mice_cam5_h5,"x")
+mice_cam6_x_columns = func_x_y_likelihood_columns(mice_cam6_h5,"x")
+eyelid_left_x_columns = func_x_y_likelihood_columns(eyelid_left_h5,"x")
+eyelid_right_x_columns = func_x_y_likelihood_columns(eyelid_right_h5,"x")
+mice_cam5_y_columns = func_x_y_likelihood_columns(mice_cam5_h5,"y")
+mice_cam6_y_columns = func_x_y_likelihood_columns(mice_cam6_h5,"y")
+eyelid_left_y_columns = func_x_y_likelihood_columns(eyelid_left_h5,"y")
+eyelid_right_y_columns = func_x_y_likelihood_columns(eyelid_right_h5,"y")
 
 
 
 
 
-def func_likelihood(var_likelihood_columns,var_mice_h5): #takes a list h5 file with (x,y,likelihood)-data and a list of likelihood-column-names and returns a matrix of only the likelihood-data labeled by the column names
-    var_likelihood = var_mice_h5[var_likelihood_columns] # make a list of likelihoodvalues per tracking object (so this is a matrix)
-    return var_likelihood
+def func_x_y_likelihood(var_x_y_likelihood_columns,var_mice_h5): #takes a list h5 file with (x,y,likelihood)-data and a list of x- ,y- or likelihood-column-names and returns a matrix of only the data labeled by the column names
+    var_x_y_likelihood = var_mice_h5[var_x_y_likelihood_columns] # make a list of x-, y- or likelihood-values per tracking object (so this is a matrix)
+    return var_x_y_likelihood
 
-mice_cam5_likelihood = func_likelihood(mice_cam5_likelihood_columns,mice_cam5_h5)
-mice_cam6_likelihood = func_likelihood(mice_cam6_likelihood_columns,mice_cam6_h5)
-eyelid_left_likelihood = func_likelihood(eyelid_left_likelihood_columns,eyelid_left_h5)
-eyelid_right_likelihood = func_likelihood(eyelid_right_likelihood_columns,eyelid_right_h5)
+mice_cam5_likelihood = func_x_y_likelihood(mice_cam5_likelihood_columns,mice_cam5_h5)
+mice_cam6_likelihood = func_x_y_likelihood(mice_cam6_likelihood_columns,mice_cam6_h5)
+eyelid_left_likelihood = func_x_y_likelihood(eyelid_left_likelihood_columns,eyelid_left_h5)
+eyelid_right_likelihood = func_x_y_likelihood(eyelid_right_likelihood_columns,eyelid_right_h5)
+mice_cam5_x = func_x_y_likelihood(mice_cam5_x_columns,mice_cam5_h5)
+mice_cam6_x = func_x_y_likelihood(mice_cam6_x_columns,mice_cam6_h5)
+eyelid_left_x = func_x_y_likelihood(eyelid_left_x_columns,eyelid_left_h5)
+eyelid_right_x = func_x_y_likelihood(eyelid_right_x_columns,eyelid_right_h5)
+mice_cam5_y = func_x_y_likelihood(mice_cam5_y_columns,mice_cam5_h5)
+mice_cam6_y = func_x_y_likelihood(mice_cam6_y_columns,mice_cam6_h5)
+eyelid_left_y = func_x_y_likelihood(eyelid_left_y_columns,eyelid_left_h5)
+eyelid_right_y = func_x_y_likelihood(eyelid_right_y_columns,eyelid_right_h5)
 
 
 
@@ -382,6 +398,6 @@ t2 = time.time()
 print('The time it took for running is {} seconds'.format(t2-t1))
 
 
-#the script works if I enter everything above here at once (and takes about than 90 seconds to run)
+#the script works if I enter everything above here at once
 
 

@@ -287,3 +287,23 @@ def func_smooth_sequences(var_compressed_sequences):
 
 eyelid_left_smooth_sequences = func_smooth_sequences(eyelid_left_compressed_sequences)
 eyelid_right_smooth_sequences = func_smooth_sequences(eyelid_right_compressed_sequences)
+
+
+
+
+
+def func_x_y_likelihood_columns(var_mice_h5,var_x_y_likelihood): #takes 2 things: 1) a h5_file with (x,y,likelihood)-data (including column names) 2) a string that says "x","y","likelihood" (what kind of column names you want) and returns a list of the x, the y or the likelihood column names
+    var_x_y_likelihood_columns = [] #make a list of likelihood column names (this is a vector)
+    for i in var_mice_h5.columns:
+        if i[2] == var_x_y_likelihood:
+            var_x_y_likelihood_columns.append(i)
+    return var_x_y_likelihood_columns
+
+mice_cam5_likelihood_columns = func_x_y_likelihood_columns(mice_cam5_h5,"likelihood")
+
+
+def func_x_y_likelihood(var_x_y_likelihood_columns,var_mice_h5): #takes a list h5 file with (x,y,likelihood)-data and a list of x- ,y- or likelihood-column-names and returns a matrix of only the data labeled by the column names
+    var_x_y_likelihood = var_mice_h5[var_x_y_likelihood_columns] # make a list of x-, y- or likelihood-values per tracking object (so this is a matrix)
+    return var_x_y_likelihood
+
+mice_cam5_likelihood = func_x_y_likelihood(mice_cam5_likelihood_columns,mice_cam5_h5)
