@@ -237,7 +237,9 @@ eyelid_left_npz.files
 
 
 
-def func_compressed_sequences(var_high_sequences,var_continued_frames): #takes 2 things: 1) a big list with 15 elements (each bodypart), each with a list of sequences (sequences are pandas.series.Series) 2) the maximum amount of frames (plus 1) that can be between to sequences when merging sequences together. The function returns a big list containing lists with sequences that are merged together.
+def func_compressed_sequences(var_high_sequences,var_continued_frames): #takes 2 things: 1) a big list with 15 elements (each bodypart), each
+    # with a list of sequences (sequences are pandas.series.Series) 2) the maximum amount of frames (plus 1) that can be between to sequences
+    # when merging sequences together. The function returns a big list containing lists with sequences that are merged together.
     var_high_sequences_compressed = []
     for var_high_sequences_per_bodypart in var_high_sequences:
         var_index_list = [] #making a big list, where all the indices are coming from the lists that should be merged together
@@ -363,3 +365,48 @@ def func_x_y_eyelid_plot(var_mice_timestamps, var_mice_x_y, var_mice_x_y_columns
     var_fig.savefig(var_fig_path + "/" + var_title, dpi=1200)
 
 func_x_y_eyelid_plot(eyelid_left_timestamps, eyelid_left_x, eyelid_left_x_columns,figure_save_path,"eyelid_left")
+
+
+
+
+
+
+
+
+reader_right = imageio.get_reader("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam3/raw_video/rpi_camera_3.mp4")
+data0_right = reader_right.get_data(0)
+fps_right = reader_right.get_meta_data()['fps']
+
+reader_left = imageio.get_reader("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/raw_video/rpi_camera_4.mp4")
+data0_left = reader_left.get_data(0)
+fps_left = reader_left.get_meta_data()['fps']
+
+reader_cam5 = imageio.get_reader("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam5/raw_video/rpi_camera_5.mp4")
+data0_cam5 = reader_cam5.get_data(0)
+fps_cam5 = reader_cam5.get_meta_data()['fps']
+
+reader_cam6 = imageio.get_reader("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam6/raw_video/rpi_camera_6.mp4")
+data0_cam6 = reader_cam6.get_data(0)
+fps_cam6 = reader_cam6.get_meta_data()['fps']
+
+breedte = 480
+hoogte = 640
+
+def func_four_images(var_data_up_left,var_data_up_right,var_data_down_left,var_data_down_right): #Takes the data (reader.get_data(i)) of four same-size-pictures and returns the data (same data format) of the four pictures combined.
+    var_data_up = [] #combining the up left and up right pictures
+    for var_i in range(len(var_data_up_left)): #look at each horizontal row of pixels in the image
+        var_horizantal_pixels_up = np.concatenate((var_data_up_left[var_i], var_data_up_right[var_i])) #combining the 2 horizontal rows from the pictures
+        var_data_up.append(var_horizantal_pixels_up) #append each row to the list. Each item in this list is a horizontal row, so this list is VERTICAL
+    var_data_up = np.asarray(var_data_up) #make a ndarray of the list, so that the writer function can write a new picture
+
+    var_data_down = [] #combining the down left and down right pictures
+    for var_j in range(len(var_data_down_left)): #look at each horizontal row of pixels in the image
+        var_horizontal_pixels_down = np.concatenate((var_data_down_left[var_j], var_data_down_right[var_j])) #combining the 2 horizontal rows from the pictures
+        var_data_down.append(var_horizontal_pixels_down) #append each row to the list. Each item in this list is a horizontal row, so this list is VERTICAL
+    var_data_down = np.asarray(var_data_down) #make a ndarray of the list, so that the writer function can write a new picture
+
+    var_data = np.concatenate((var_data_up, var_data_down)) #here the the two arrays are combined to a tuple, and then the tuple will form an array. This way the combined two arrays still form an array.
+    return var_data #return the data of the new picture with four pictures combined
+data = func_four_images(data0_right,data0_left,data0_cam5,data0_cam6)
+writer = imageio.get_writer("/Users/samsuidman/Desktop/video_test_map/four_images.png")
+writer.append_data(data)
