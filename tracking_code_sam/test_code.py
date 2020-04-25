@@ -407,6 +407,30 @@ def func_four_images(var_data_up_left,var_data_up_right,var_data_down_left,var_d
 
     var_data = np.concatenate((var_data_up, var_data_down)) #here the the two arrays are combined to a tuple, and then the tuple will form an array. This way the combined two arrays still form an array.
     return var_data #return the data of the new picture with four pictures combined
+
 data = func_four_images(data0_right,data0_left,data0_cam5,data0_cam6)
 writer = imageio.get_writer("/Users/samsuidman/Desktop/video_test_map/four_images.png")
 writer.append_data(data)
+
+
+
+def func_frames_to_time(var_npz_file,var_smooth_sequences):
+    var_timestamps = var_npz_file["timestamps"]
+    var_time_sequences = []
+    for var_sequences_per_bodypart in var_smooth_sequences:
+        var_time_sequences_per_bodypart = []
+        for var_sequence in var_sequences_per_bodypart:
+            var_time_single_sequence = []
+            for var_index_value in var_sequence:
+                if var_index_value < len(var_timestamps):
+                    var_time_value = var_timestamps[var_index_value]
+                    var_time_single_sequence.append(var_time_value)
+            var_time_sequences_per_bodypart.append(var_time_single_sequence)
+        var_time_sequences.append(var_time_sequences_per_bodypart)
+    return var_time_sequences
+
+mice_cam5_smooth_time_sequences = func_frames_to_time(mice_cam5_npz,mice_cam5_smooth_sequences)
+mice_cam6_smooth_time_sequences = func_frames_to_time(mice_cam6_npz,mice_cam6_smooth_sequences)
+eyelid_left_smooth_time_sequences = func_frames_to_time(eyelid_left_npz,eyelid_left_smooth_sequences)
+eyelid_right_smooth_time_sequences = func_frames_to_time(eyelid_right_npz,eyelid_right_smooth_sequences)
+

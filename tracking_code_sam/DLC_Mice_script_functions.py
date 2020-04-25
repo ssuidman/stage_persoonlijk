@@ -276,6 +276,8 @@ def func_compressed_sequences(var_high_sequences,var_continued_frames): #takes 2
         var_high_sequences_compressed.append(var_high_sequences_compressed_per_bodypart)
     return(var_high_sequences_compressed) #you give back a big list that contains lists of compressed sequences
 
+mice_cam5_compressed_sequences = func_compressed_sequences(mice_cam5_high_sequences,time_between_frames)
+mice_cam6_compressed_sequences = func_compressed_sequences(mice_cam6_high_sequences,time_between_frames)
 eyelid_left_compressed_sequences = func_compressed_sequences(eyelid_left_high_sequences,time_between_frames)
 eyelid_right_compressed_sequences = func_compressed_sequences(eyelid_right_high_sequences,time_between_frames)
 
@@ -379,8 +381,34 @@ def func_smooth_sequences(var_compressed_sequences): #takes the compressed seque
         var_smooth_sequences.append(var_smooth_sequences_per_bodypart) #add the bodypart list to the list for all bodyparts
     return var_smooth_sequences
 
+mice_cam5_smooth_sequences = func_smooth_sequences(mice_cam5_compressed_sequences)
+mice_cam6_smooth_sequences = func_smooth_sequences(mice_cam6_compressed_sequences)
 eyelid_left_smooth_sequences = func_smooth_sequences(eyelid_left_compressed_sequences)
 eyelid_right_smooth_sequences = func_smooth_sequences(eyelid_right_compressed_sequences)
+
+
+
+
+
+def func_frames_to_time(var_npz_file,var_smooth_sequences):
+    var_timestamps = var_npz_file["timestamps"]
+    var_time_sequences = []
+    for var_sequences_per_bodypart in var_smooth_sequences:
+        var_time_sequences_per_bodypart = []
+        for var_sequence in var_sequences_per_bodypart:
+            var_time_single_sequence = []
+            for var_index_value in var_sequence:
+                if var_index_value < len(var_timestamps):
+                    var_time_value = var_timestamps[var_index_value]
+                    var_time_single_sequence.append(var_time_value)
+            var_time_sequences_per_bodypart.append(var_time_single_sequence)
+        var_time_sequences.append(var_time_sequences_per_bodypart)
+    return var_time_sequences
+
+mice_cam5_smooth_time_sequences = func_frames_to_time(mice_cam5_npz,mice_cam5_smooth_sequences)
+mice_cam6_smooth_time_sequences = func_frames_to_time(mice_cam6_npz,mice_cam6_smooth_sequences)
+eyelid_left_smooth_time_sequences = func_frames_to_time(eyelid_left_npz,eyelid_left_smooth_sequences)
+eyelid_right_smooth_time_sequences = func_frames_to_time(eyelid_right_npz,eyelid_right_smooth_sequences)
 
 
 

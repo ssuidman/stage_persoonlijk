@@ -19,10 +19,7 @@ def func_path(var_working_path): #returns an absolute working path as a variable
     return var_abs_working_path
 
 
-#reading the tracking files (h5), these variables now contain a matrix, 3 elements per
-#bodypart (x,y,likelihood). There are 10 bodyparts, so in total there are 30 elements.
-#Each element got almost 20000 values, which are coordinate-values (for x and y) or
-#likelihoodvalues
+
 def func_h5_reader(var_path_to_h5_file): #reads a h5 file using the path to the file as a variable
     var_h5_file = pd.read_hdf(var_path_to_h5_file)
     return var_h5_file
@@ -240,6 +237,23 @@ def func_smooth_sequences(var_compressed_sequences):
             var_smooth_sequences_per_bodypart.append(var_smooth_single_sequence)
         var_smooth_sequences.append(var_smooth_sequences_per_bodypart)
     return var_smooth_sequences
+
+
+
+def func_frames_to_time(var_npz_file,var_smooth_sequences):
+    var_timestamps = var_npz_file["timestamps"]
+    var_time_sequences = []
+    for var_sequences_per_bodypart in var_smooth_sequences:
+        var_time_sequences_per_bodypart = []
+        for var_sequence in var_sequences_per_bodypart:
+            var_time_single_sequence = []
+            for var_index_value in var_sequence:
+                if var_index_value < len(var_timestamps):
+                    var_time_value = var_timestamps[var_index_value]
+                    var_time_single_sequence.append(var_time_value)
+            var_time_sequences_per_bodypart.append(var_time_single_sequence)
+        var_time_sequences.append(var_time_sequences_per_bodypart)
+    return var_time_sequences
 
 
 
