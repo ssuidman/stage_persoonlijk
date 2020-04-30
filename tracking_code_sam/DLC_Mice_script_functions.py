@@ -82,10 +82,7 @@ eyelid_right_timestamps = func_timestamps(eyelid_right_npz)
 
 
 def func_x_y_likelihood_columns(var_mice_h5,var_x_y_likelihood): #takes 2 things: 1) a h5_file with (x,y,likelihood)-data (including column names) 2) a string that says "x","y","likelihood" (what kind of column names you want) and returns a list of the x, the y or the likelihood column names
-    var_x_y_likelihood_columns = [] #make a list of likelihood column names (this is a vector)
-    for i in var_mice_h5.columns:
-        if i[2] == var_x_y_likelihood:
-            var_x_y_likelihood_columns.append(i)
+    var_x_y_likelihood_columns = [i for i in var_mice_h5 if i[2] == var_x_y_likelihood] #make a list of likelihood column names (this is a vector)
     return var_x_y_likelihood_columns
 
 mice_cam5_likelihood_columns = func_x_y_likelihood_columns(mice_cam5_h5,"likelihood")
@@ -143,13 +140,8 @@ eyelid_right_video_info = func_video(eyelid_right_video_path)
 
 
 def func_low_likelihood(var_likelihood,var_likelihood_columns,threshold): #takes likelihood-matrix (it is matrix, because of multiple bodyparts), a likelihood-column-name array and a threshold and returns a matrix of low likelihoods and a matrix of low likelihood indices
-    var_low_likelihood_values = []
-    var_low_likelihood_index = []
-    for i in var_likelihood_columns:
-        var_low_likelihood_values_per_bodypart = var_likelihood[i].array[var_likelihood[i].array<threshold]
-        var_low_likelihood_index_per_bodypart = var_likelihood[i].index[var_likelihood[i].array<threshold]
-        var_low_likelihood_values.append(var_low_likelihood_values_per_bodypart)
-        var_low_likelihood_index.append(var_low_likelihood_index_per_bodypart)
+    var_low_likelihood_values = [var_likelihood[i].array[var_likelihood[i].array<threshold] for i in var_likelihood_columns]
+    var_low_likelihood_index = [var_likelihood[j].index[var_likelihood[j].array<threshold] for j in var_likelihood_columns]
     return(var_low_likelihood_values,var_low_likelihood_index)
 
 mice_cam5_low_likelihood_values,mice_cam5_low_likelihood_index = func_low_likelihood(mice_cam5_likelihood,mice_cam5_likelihood_columns,threshold)
@@ -162,13 +154,8 @@ eyelid_right_low_likelihood_values,eyelid_right_low_likelihood_index = func_low_
 
 
 def func_high_likelihood(var_likelihood,var_likelihood_columns,threshold): #takes likelihood-matrix (it is matrix, because of multiple bodyparts), a likelihood-column-name array and a threshold and returns a matrix of low likelihoods and a matrix of low likelihood indices
-    var_high_likelihood_values = []
-    var_high_likelihood_index = []
-    for i in var_likelihood_columns:
-        var_high_likelihood_values_per_bodypart = var_likelihood[i].array[var_likelihood[i].array>threshold]
-        var_high_likelihood_index_per_bodypart = var_likelihood[i].index[var_likelihood[i].array>threshold]
-        var_high_likelihood_values.append(var_high_likelihood_values_per_bodypart)
-        var_high_likelihood_index.append(var_high_likelihood_index_per_bodypart)
+    var_high_likelihood_values = [var_likelihood[i].array[var_likelihood[i].array>threshold] for i in var_likelihood_columns]
+    var_high_likelihood_index = [var_likelihood[j].index[var_likelihood[j].array>threshold] for j in var_likelihood_columns]
     return(var_high_likelihood_values,var_high_likelihood_index)
 
 mice_cam5_high_likelihood_values,mice_cam5_high_likelihood_index = func_high_likelihood(mice_cam5_likelihood,mice_cam5_likelihood_columns,threshold)

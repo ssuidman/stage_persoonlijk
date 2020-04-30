@@ -2,11 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dcc38492-32a5-4d9f-a789-3679f80c5624" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/click_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DLC_Mice_only_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/DLC_Mice_only_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/DLC_Mice_script_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/DLC_Mice_script_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main_test_code.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_test_code.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_code.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_code.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -144,6 +143,9 @@
       <workItem from="1587568399931" duration="2387000" />
       <workItem from="1587633247226" duration="12968000" />
       <workItem from="1587721549956" duration="10694000" />
+      <workItem from="1588066154412" duration="542000" />
+      <workItem from="1588155929413" duration="3989000" />
+      <workItem from="1588240472493" duration="2498000" />
     </task>
     <servers />
   </component>
@@ -163,11 +165,12 @@
       <screen x="0" y="23" width="1280" height="713" />
     </state>
     <state x="428" y="141" key="FileChooserDialogImpl/0.23.1280.713@0.23.1280.713" timestamp="1580897182734" />
-    <state x="173" y="23" width="982" height="714" key="SettingsEditor" timestamp="1583413966656">
-      <screen x="0" y="23" width="1280" height="714" />
+    <state x="173" y="23" width="982" height="714" key="SettingsEditor" timestamp="1588162295936">
+      <screen x="0" y="23" width="1280" height="722" />
     </state>
     <state x="149" y="23" width="982" height="713" key="SettingsEditor/0.23.1280.713@0.23.1280.713" timestamp="1580897213177" />
     <state x="173" y="23" width="982" height="714" key="SettingsEditor/0.23.1280.714@0.23.1280.714" timestamp="1583413966656" />
+    <state x="173" y="23" key="SettingsEditor/0.23.1280.722@0.23.1280.722" timestamp="1588162295936" />
     <state width="500" height="445" key="SwitcherDM" timestamp="1580666190610">
       <screen x="0" y="23" width="1280" height="713" />
     </state>
@@ -178,12 +181,12 @@
     <state x="170" y="70" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.713@0.23.1280.713" timestamp="1583399128712" />
     <state x="168" y="91" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.714@0.23.1280.714" timestamp="1583231664835" />
     <state x="170" y="70" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.716@0.23.1280.716" timestamp="1585069041390" />
-    <state x="319" y="212" key="com.intellij.ide.util.TipDialog" timestamp="1587721567066">
-      <screen x="0" y="23" width="1280" height="714" />
+    <state x="461" y="301" key="com.intellij.ide.util.TipDialog" timestamp="1588240473452">
+      <screen x="0" y="23" width="1280" height="716" />
     </state>
     <state x="319" y="218" width="642" height="329" key="com.intellij.ide.util.TipDialog/0.23.1280.713@0.23.1280.713" timestamp="1586427590441" />
     <state x="319" y="212" key="com.intellij.ide.util.TipDialog/0.23.1280.714@0.23.1280.714" timestamp="1587721567066" />
-    <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.716@0.23.1280.716" timestamp="1586513045832" />
+    <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.716@0.23.1280.716" timestamp="1588240473452" />
     <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.717@0.23.1280.717" timestamp="1587565704386" />
     <state x="429" y="304" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1584223450550">
       <screen x="0" y="23" width="1280" height="714" />
