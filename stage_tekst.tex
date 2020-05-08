@@ -353,5 +353,144 @@ git clone \url{https://github.com/arnefmeyer/social_interaction_eyetracking.git}
     Make sure that you save the file in the end before you quit.
 \end{itemize}
 
+\section{Summary}
+
+\subsection{Introduction to computers}
+
+\begin{itemize}
+    
+    \item Terminal
+    \begin{itemize}
+        \item pwd
+        \item cd
+        \item ls
+    \end{itemize}
+    
+    \item Git
+    \begin{itemize}
+        \item init
+        \item status
+        \item remote
+        \item branch
+        \item etc
+    \end{itemize}
+    
+    \item SSH
+    \begin{itemize}
+        \item mkdir .ssh
+        \item Host lilo
+        \item log in at lilo
+        \item log in at titan
+        \item exit
+        \item exit
+    \end{itemize}
+    
+    \item Conda
+    \begin{itemize}
+        \item which conda
+        \item conda list
+        \item conda create $--$name new\_env
+        \item conda activate new\_env
+    \end{itemize}
+
+    \item DeepLabCut
+    \begin{itemize}
+        \item conda env create -f /path/to/file/DLC-CPU.yaml
+        \item conda activate DLC-CPU
+        \item create projects
+        \item add extra videos
+        \item extract frames
+        \item label frames
+        \item train GPU (Arne)
+    \end{itemize}
+\end{itemize}
+
+\subsection{The coding part}
+
+\begin{itemize}
+    \item \begin{itemize}
+        \item learnt how h5-files work
+        \item learnt how pandas work
+        \item created "likelihood-column-names"
+        \item created "likelihood" 
+        \item created ( frames(time) , likelihood )-plots for all bodyparts
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item learnt how to use imageio for videodata
+        \item learnt how to use os.path for path-variables
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created "low-likelihood"
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created "low-likelihood-sequences" (likelihood/frames)
+        \item created "lowest-sequence-frame" (likelihood/frames)
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created "binary-likelihood-plot"
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item changed the main variable "M3728\_alone\_cam5\_mice" to "mice", where in the beginning of the script a specific file is loaded.
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item changed the first part of script to functions
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item changed entire script to functions
+        \item paths-to-files are the only things needed (and threshold of 0.99)
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item loaded in eye-tracking-data
+        \item created "binary-closed-eye-plots"
+        \item found out that "M3728-with-M3729" had almost no closed-eye-events
+        \item created "high-likelihood-sequences"
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created "compressed-sequences"
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created "closed-eye-sequences video"
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created "smooth sequences"
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item changed functions so also "x,y" (and columns) can be extracted instead of only "likelihood".
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created (t,x)- and (t,y)-plots for 5 eyelid parts
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created "4-pictures-in-1"
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item created "frames-to-time-sequence"
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item changed a few functions using list-comprehension
+    \end{itemize}
+    
+    \item \begin{itemize}
+        \item learnt how @click package works
+    \end{itemize}
+    
+\end{itemize}
+
 
 \end{document}
