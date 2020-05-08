@@ -345,7 +345,7 @@ def func_plot_save(var_likelihood_binary,var_likelihood,var_likelihood_columns,v
         var_ax3.plot(list(var_likelihood[var_likelihood_columns[j]].index / len(var_likelihood[var_likelihood_columns[j]])),var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
         var_ax1.plot([0, 1], [0, 0], label="{}".format(var_likelihood_columns[j][1]))
         var_ax1.legend()  # making the legend
-    var_fig.savefig(var_figure_save_path+var_title,dpi=1200)  # saving the picture at high quality
+    var_fig.savefig(var_figure_save_path+var_title)  # saving the picture at high quality
 
 #func_plot_save(mice_cam5_likelihood_binary,mice_cam5_likelihood,mice_cam5_likelihood_columns,figure_save_path)
 #func_plot_save(mice_cam6_likelihood_binary,mice_cam6_likelihood,mice_cam6_likelihood_columns,figure_save_path)
@@ -443,7 +443,8 @@ def func_x_y_eyelid_plot(var_mice_timestamps, var_mice_x_y, var_mice_x_y_columns
         var_ax[var_i].set_title(var_mice_x_y_columns[var_i][1]) #set the title to the bodypart (nasal edge for example)
         var_ax[var_i].set_ylabel("time") #give every
     var_ax[len(var_ax)-1].set_xlabel(var_mice_x_y_columns[len(var_ax)-1][2])
-    var_fig.savefig(var_fig_path + "/" + var_title, dpi=1200)
+    var_fig.tight_layout()
+    var_fig.savefig(var_fig_path + "/" + var_title)
 
 #func_x_y_eyelid_plot(eyelid_left_timestamps, eyelid_left_x, eyelid_left_x_columns,figure_save_path,"eyelid_left")
 #func_x_y_eyelid_plot(eyelid_left_timestamps, eyelid_left_y, eyelid_left_y_columns,figure_save_path,"eyelid_left")
