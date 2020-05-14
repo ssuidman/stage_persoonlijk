@@ -434,3 +434,14 @@ mice_cam6_smooth_time_sequences = func_frames_to_time(mice_cam6_npz,mice_cam6_sm
 eyelid_left_smooth_time_sequences = func_frames_to_time(eyelid_left_npz,eyelid_left_smooth_sequences)
 eyelid_right_smooth_time_sequences = func_frames_to_time(eyelid_right_npz,eyelid_right_smooth_sequences)
 
+
+def func_speed(tracking_data):
+    body_parts = tracking_data['body_parts'].keys() #make a list for the body parts
+    for body_part in body_parts:
+        position = tracking_data['body_parts'][body_part]['position']
+        position_difference = np.transpose(np.diff(np.transpose(position)))
+        velocity_not_same_size = np.transpose([np.transpose(position_difference)[c] / np.diff(tracking_data['timestamps']) for c in range(len(np.transpose(position_difference)))])
+        velocity = np.transpose([np.insert(np.transpose(velocity_not_same_size)[c],0,np.nan) for c in range(len(np.transpose(velocity_not_same_size)))])
+        speed = np.asarray([np.sqrt(c[0]**2 +c[1]**2) for c in velocity])
+        tracking_data['body_parts'][body_part]['speed'] = speed
+    return tracking_data
