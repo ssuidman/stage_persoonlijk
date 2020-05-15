@@ -435,13 +435,77 @@ eyelid_left_smooth_time_sequences = func_frames_to_time(eyelid_left_npz,eyelid_l
 eyelid_right_smooth_time_sequences = func_frames_to_time(eyelid_right_npz,eyelid_right_smooth_sequences)
 
 
+
+
+
+
+
 def func_speed(tracking_data):
     body_parts = tracking_data['body_parts'].keys() #make a list for the body parts
-    for body_part in body_parts:
-        position = tracking_data['body_parts'][body_part]['position']
-        position_difference = np.transpose(np.diff(np.transpose(position)))
-        velocity_not_same_size = np.transpose([np.transpose(position_difference)[c] / np.diff(tracking_data['timestamps']) for c in range(len(np.transpose(position_difference)))])
-        velocity = np.transpose([np.insert(np.transpose(velocity_not_same_size)[c],0,np.nan) for c in range(len(np.transpose(velocity_not_same_size)))])
-        speed = np.asarray([np.sqrt(c[0]**2 +c[1]**2) for c in velocity])
-        tracking_data['body_parts'][body_part]['speed'] = speed
+    for body_part in body_parts: #look at one bodypart
+        position = tracking_data['body_parts'][body_part]['position'] #get the position data for this body_part
+        position_difference = np.transpose(np.diff(np.transpose(position))) #calculate the difference vector of position. This means that this array has one less element.
+        velocity_not_same_size = np.transpose([np.transpose(position_difference)[c] / np.diff(tracking_data['timestamps']) for c in range(len(np.transpose(position_difference)))]) #calculate the velocity vector by dividing through the time between two positions
+        velocity = np.transpose([np.insert(np.transpose(velocity_not_same_size)[c],0,np.nan) for c in range(len(np.transpose(velocity_not_same_size)))]) #add np.nan in front, so that the first element of the velocity vector is empty. And the second element is the velocity relative to the previous position
+        speed = np.asarray([np.sqrt(c[0]**2 +c[1]**2) for c in velocity]) #calculate the speed using the velocity
+        speed_averaged = [np.sum(speed[c-5:c+5])/(5*2+1) for c in range(len(speed))] #averaged over 5 frames before and after
+        tracking_data['body_parts'][body_part]['speed'] = speed #add the speed to the dictionary of tracking data
+        tracking_data['body_parts'][body_part]['speed_averaged'] = speed_averaged
     return tracking_data
+
+
+
+
+
+def cli_align_egocentric(db_path,
+                         mouse=None):
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,
+                                                   video='rpi_camera_6',
+                                                   min_likelihood=.99,
+                                                   unit='cm')
+
+        tracking_data = func_speed(tracking_data)
+
+        transformed_positions, xy_centers, angles = transform.transform_egocentric(tracking_data)
+
+        # load eye closure data
+        eye_data = load_eye_closure_data(rec_path)
+
+        # extract eye closure-aligned body part positions
+        part_names_m2 = sorted([k for k in transformed_positions
+                                if k.startswith('m2')])
+        pos_eye_closed = get_body_part_positions_eye_closed(transformed_positions,
+                                                            tracking_data['timestamps'],
+                                                            eye_data,
+                                                            part_names=part_names_m2)
+    return tracking_data, eye_data
+
+
+
+
+db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
+mouse1 = ['M4081']
+tracking_data1,eye_data1 = cli_align_egocentric(db_path1,mouse1)
+
+#This is a list of lists (can be made into an array if needed), where the intervals of closed (left) eye are in.
+eye_closed_interval_left_full = [list(range(eye_data1['left']['eye_closed_interval'][c][0],eye_data1['left']['eye_closed_interval'][c][1]+1)) for c in range(len(eye_data1['left']['eye_closed_interval']))]
+
+
+fig,ax = plt.subplots(ncols=len(body_parts),figsize=[32.4,4.8])
+for i in range(len(tracking_data1['body_parts'].keys())):
+    ax[i].plot(tracking_data1['body_parts'][list(tracking_data1['body_parts'].keys())[i]]['speed_averaged'])
+    ax[i].set_title(list(tracking_data1['body_parts'].keys())[i])
+fig.tight_layout()
+fig.show()
+
+#There is averaged over 11 (=5*2+1) frames (func_speed) and this is plotted then.
+
+# cam3, cam4 --> fps=60
+# cam5, cam6 --> fps=30

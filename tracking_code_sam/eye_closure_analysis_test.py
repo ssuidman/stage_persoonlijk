@@ -541,14 +541,5 @@ def cli_align_egocentric(db_path,
 
     plt.show(block=True)
 
-db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
-mouse1 = ['M4081'] #normally ['M3728', 'M3729', 'M4081'] for all three mice
 
-# return recordings_mouse, rec_path, tracking_data, transformed_positions, xy_centers, angles, eye_data, part_names_m2, pos_eye_closed
-# recordings_mouse1, rec_path1, tracking_data1, transformed_positions1, xy_centers1, angles1, eye_data1, part_names_m21, pos_eye_closed1 = cli_align_egocentric(db_path1,mouse1)
-# tracking_data1['body_parts']['m1_body_center']['position'][23]
-# eye_data1['left']['eye_closed_interval'][220]
-
-# cam3, cam4 --> fps=60
-# cam5, cam6 --> fps=30
 

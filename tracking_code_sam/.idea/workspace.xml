@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="dcc38492-32a5-4d9f-a789-3679f80c5624" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/eye_closure_analysis_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eye_closure_analysis_test.py" beforeDir="false" afterPath="$PROJECT_DIR$/eye_closure_analysis_test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test_code.py" beforeDir="false" afterPath="$PROJECT_DIR$/test_code.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -146,7 +146,8 @@
       <workItem from="1588155929413" duration="3989000" />
       <workItem from="1588240472493" duration="2498000" />
       <workItem from="1588935247894" duration="4010000" />
-      <workItem from="1589456559599" duration="18033000" />
+      <workItem from="1589456559599" duration="18103000" />
+      <workItem from="1589532573428" duration="13798000" />
     </task>
     <servers />
   </component>
@@ -176,22 +177,21 @@
     <state x="170" y="70" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.713@0.23.1280.713" timestamp="1583399128712" />
     <state x="168" y="91" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.714@0.23.1280.714" timestamp="1583231664835" />
     <state x="170" y="70" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.716@0.23.1280.716" timestamp="1585069041390" />
-    <state x="461" y="301" key="com.intellij.ide.util.TipDialog" timestamp="1589456586144">
-      <screen x="0" y="23" width="1280" height="717" />
+    <state x="319" y="212" key="com.intellij.ide.util.TipDialog" timestamp="1589532573484">
+      <screen x="0" y="23" width="1280" height="714" />
     </state>
     <state x="319" y="218" width="642" height="329" key="com.intellij.ide.util.TipDialog/0.23.1280.713@0.23.1280.713" timestamp="1586427590441" />
-    <state x="319" y="212" key="com.intellij.ide.util.TipDialog/0.23.1280.714@0.23.1280.714" timestamp="1588935250150" />
+    <state x="319" y="212" key="com.intellij.ide.util.TipDialog/0.23.1280.714@0.23.1280.714" timestamp="1589532573484" />
     <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.716@0.23.1280.716" timestamp="1588240473452" />
     <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.717@0.23.1280.717" timestamp="1589456586144" />
     <state x="429" y="304" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1584223450550">
       <screen x="0" y="23" width="1280" height="714" />
     </state>
     <state x="429" y="304" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.23.1280.714@0.23.1280.714" timestamp="1584223450550" />
-    <state x="372" y="266" width="670" height="679" key="search.everywhere.popup" timestamp="1589462162781">
-      <screen x="0" y="23" width="1280" height="716" />
+    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup" timestamp="1589551484587">
+      <screen x="0" y="23" width="1280" height="714" />
     </state>
-    <state x="372" y="265" width="670" height="676" key="search.everywhere.popup/0.23.1280.713@0.23.1280.713" timestamp="1580826531367" />
-    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup/0.23.1280.714@0.23.1280.714" timestamp="1587648252916" />
+    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup/0.23.1280.714@0.23.1280.714" timestamp="1589551484587" />
     <state x="372" y="266" width="670" height="679" key="search.everywhere.popup/0.23.1280.716@0.23.1280.716" timestamp="1589462162781" />
     <state x="372" y="266" width="670" height="680" key="search.everywhere.popup/0.23.1280.717@0.23.1280.717" timestamp="1589459579449" />
   </component>
