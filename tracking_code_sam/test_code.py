@@ -498,7 +498,7 @@ tracking_data1,eye_data1 = cli_align_egocentric(db_path1,mouse1)
 eye_closed_interval_left_full = [list(range(eye_data1['left']['eye_closed_interval'][c][0],eye_data1['left']['eye_closed_interval'][c][1]+1)) for c in range(len(eye_data1['left']['eye_closed_interval']))]
 
 
-fig,ax = plt.subplots(ncols=len(body_parts),figsize=[32.4,4.8])
+fig,ax = plt.subplots(ncols=len(tracking_data1['body_parts'].keys()),figsize=[32.4,4.8])
 for i in range(len(tracking_data1['body_parts'].keys())):
     ax[i].plot(tracking_data1['body_parts'][list(tracking_data1['body_parts'].keys())[i]]['speed_averaged'])
     ax[i].set_title(list(tracking_data1['body_parts'].keys())[i])
