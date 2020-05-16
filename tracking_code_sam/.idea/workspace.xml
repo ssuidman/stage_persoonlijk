@@ -146,7 +146,8 @@
       <workItem from="1588240472493" duration="2498000" />
       <workItem from="1588935247894" duration="4010000" />
       <workItem from="1589456559599" duration="18103000" />
-      <workItem from="1589532573428" duration="14075000" />
+      <workItem from="1589532573428" duration="14147000" />
+      <workItem from="1589623428868" duration="9217000" />
     </task>
     <servers />
   </component>
@@ -161,12 +162,10 @@
     <state x="428" y="142" key="FileChooserDialogImpl" timestamp="1589459097550">
       <screen x="0" y="23" width="1280" height="717" />
     </state>
-    <state x="428" y="141" key="FileChooserDialogImpl/0.23.1280.713@0.23.1280.713" timestamp="1580897182734" />
     <state x="428" y="142" key="FileChooserDialogImpl/0.23.1280.717@0.23.1280.717" timestamp="1589459097550" />
     <state x="173" y="23" width="982" height="717" key="SettingsEditor" timestamp="1589459255070">
       <screen x="0" y="23" width="1280" height="717" />
     </state>
-    <state x="149" y="23" width="982" height="713" key="SettingsEditor/0.23.1280.713@0.23.1280.713" timestamp="1580897213177" />
     <state x="173" y="23" width="982" height="714" key="SettingsEditor/0.23.1280.714@0.23.1280.714" timestamp="1583413966656" />
     <state x="173" y="23" width="982" height="717" key="SettingsEditor/0.23.1280.717@0.23.1280.717" timestamp="1589459255070" />
     <state x="173" y="23" key="SettingsEditor/0.23.1280.722@0.23.1280.722" timestamp="1588162295936" />
@@ -176,21 +175,21 @@
     <state x="170" y="70" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.713@0.23.1280.713" timestamp="1583399128712" />
     <state x="168" y="91" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.714@0.23.1280.714" timestamp="1583231664835" />
     <state x="170" y="70" key="com.intellij.execution.console.ConsoleHistoryController$MyBrowseAction$1/0.23.1280.716@0.23.1280.716" timestamp="1585069041390" />
-    <state x="319" y="212" key="com.intellij.ide.util.TipDialog" timestamp="1589532573484">
+    <state x="319" y="212" key="com.intellij.ide.util.TipDialog" timestamp="1589623428907">
       <screen x="0" y="23" width="1280" height="714" />
     </state>
     <state x="319" y="218" width="642" height="329" key="com.intellij.ide.util.TipDialog/0.23.1280.713@0.23.1280.713" timestamp="1586427590441" />
-    <state x="319" y="212" key="com.intellij.ide.util.TipDialog/0.23.1280.714@0.23.1280.714" timestamp="1589532573484" />
+    <state x="319" y="212" key="com.intellij.ide.util.TipDialog/0.23.1280.714@0.23.1280.714" timestamp="1589623428907" />
     <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.716@0.23.1280.716" timestamp="1588240473452" />
     <state x="461" y="301" key="com.intellij.ide.util.TipDialog/0.23.1280.717@0.23.1280.717" timestamp="1589456586144" />
     <state x="429" y="304" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1584223450550">
       <screen x="0" y="23" width="1280" height="714" />
     </state>
     <state x="429" y="304" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.23.1280.714@0.23.1280.714" timestamp="1584223450550" />
-    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup" timestamp="1589551484587">
+    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup" timestamp="1589633514747">
       <screen x="0" y="23" width="1280" height="714" />
     </state>
-    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup/0.23.1280.714@0.23.1280.714" timestamp="1589551484587" />
+    <state x="372" y="265" width="670" height="677" key="search.everywhere.popup/0.23.1280.714@0.23.1280.714" timestamp="1589633514747" />
     <state x="372" y="266" width="670" height="679" key="search.everywhere.popup/0.23.1280.716@0.23.1280.716" timestamp="1589462162781" />
     <state x="372" y="266" width="670" height="680" key="search.everywhere.popup/0.23.1280.717@0.23.1280.717" timestamp="1589459579449" />
   </component>

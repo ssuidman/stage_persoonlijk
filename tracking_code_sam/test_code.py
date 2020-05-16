@@ -261,8 +261,7 @@ def func_compressed_sequences(var_high_sequences,var_continued_frames): #takes 2
         for i in var_index_list: #you iterate over the big list that contains small lists of compressed sequence-lists
             var_high_sequences_compressed_per_bodypart_temp = [] #you look at one of those compressed (merged) sequences
             for j in i: #you look at an index value of one sequence
-                var_high_sequences_compressed_per_bodypart_temp.extend(var_high_sequences_per_bodypart[j].index) #you merge the sequences that should be together
-            var_high_sequences_compressed_per_bodypart.append(var_high_sequences_compressed_per_bodypart_temp) #you add this list of compressed sequences to the big list
+                var_high_sequences_compressed_per_bodypart_temp.extend(var_high_sequences_per_bodypart[j].index) #you merge the sequences that should be together            var_high_sequences_compressed_per_bodypart.append(var_high_sequences_compressed_per_bodypart_temp) #you add this list of compressed sequences to the big list
         var_high_sequences_compressed.append(var_high_sequences_compressed_per_bodypart)
     return(var_high_sequences_compressed) #you give back a big list that contains lists of compressed sequences
 
@@ -440,7 +439,7 @@ eyelid_right_smooth_time_sequences = func_frames_to_time(eyelid_right_npz,eyelid
 
 
 
-def func_speed(tracking_data):
+def func_speed_tracking_data(tracking_data):
     body_parts = tracking_data['body_parts'].keys() #make a list for the body parts
     for body_part in body_parts: #look at one bodypart
         position = tracking_data['body_parts'][body_part]['position'] #get the position data for this body_part
@@ -453,7 +452,17 @@ def func_speed(tracking_data):
         tracking_data['body_parts'][body_part]['speed_averaged'] = speed_averaged
     return tracking_data
 
-
+def func_speed_eye_data(tracking_data,eye_data):
+    body_parts = list(tracking_data['body_parts'].keys())
+    for eye in eye_data.keys():
+        eye_data[eye]['speed_averaged'] = {}
+        for body_part in body_parts:
+            speed = tracking_data['body_parts'][body_part]['speed']
+            speed_averaged = tracking_data['body_parts'][body_part]['speed_averaged']
+            speed_averaged_f = interpolate.interp1d(tracking_data['timestamps'],tracking_data['body_parts'][body_part]['speed_averaged'],fill_value='extrapolate')
+            speed_averaged_eye_data = speed_averaged_f(eye_data[eye]['timestamps'])
+            eye_data[eye]['speed_averaged'][body_part]=speed_averaged_eye_data
+    return eye_data
 
 
 
@@ -471,12 +480,14 @@ def cli_align_egocentric(db_path,
                                                    min_likelihood=.99,
                                                    unit='cm')
 
-        tracking_data = func_speed(tracking_data)
+        tracking_data = func_speed_tracking_data(tracking_data)
 
         transformed_positions, xy_centers, angles = transform.transform_egocentric(tracking_data)
 
         # load eye closure data
         eye_data = load_eye_closure_data(rec_path)
+
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
 
         # extract eye closure-aligned body part positions
         part_names_m2 = sorted([k for k in transformed_positions
@@ -488,24 +499,24 @@ def cli_align_egocentric(db_path,
     return tracking_data, eye_data
 
 
-
-
 db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
 mouse1 = ['M4081']
 tracking_data1,eye_data1 = cli_align_egocentric(db_path1,mouse1)
 
-#This is a list of lists (can be made into an array if needed), where the intervals of closed (left) eye are in.
-eye_closed_interval_left_full = [list(range(eye_data1['left']['eye_closed_interval'][c][0],eye_data1['left']['eye_closed_interval'][c][1]+1)) for c in range(len(eye_data1['left']['eye_closed_interval']))]
+#This is a plot of all body_parts where the averaged speed is plotted (of the tracking_data)
+#fig,ax = plt.subplots(ncols=len(tracking_data1['body_parts'].keys()),figsize=[32.4,4.8])
+#for i in range(len(tracking_data1['body_parts'].keys())):
+#    ax[i].plot(tracking_data1['body_parts'][list(tracking_data1['body_parts'].keys())[i]]['speed_averaged'])
+#    ax[i].set_title(list(tracking_data1['body_parts'].keys())[i])
+#fig.tight_layout()
+#fig.show()
 
-
-fig,ax = plt.subplots(ncols=len(tracking_data1['body_parts'].keys()),figsize=[32.4,4.8])
-for i in range(len(tracking_data1['body_parts'].keys())):
-    ax[i].plot(tracking_data1['body_parts'][list(tracking_data1['body_parts'].keys())[i]]['speed_averaged'])
-    ax[i].set_title(list(tracking_data1['body_parts'].keys())[i])
-fig.tight_layout()
-fig.show()
-
-#There is averaged over 11 (=5*2+1) frames (func_speed) and this is plotted then.
 
 # cam3, cam4 --> fps=60
 # cam5, cam6 --> fps=30
+
+
+
+
+
+
