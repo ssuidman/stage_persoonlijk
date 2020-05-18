@@ -467,6 +467,7 @@ def cli_align_egocentric(db_path,
         # extract eye closure-aligned body part positions
         part_names_m2 = sorted([k for k in transformed_positions
                                 if k.startswith('m2')])
+
         pos_eye_closed = get_body_part_positions_eye_closed(transformed_positions,
                                                             tracking_data['timestamps'],
                                                             eye_data,
