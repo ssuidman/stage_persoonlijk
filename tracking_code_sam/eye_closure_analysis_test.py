@@ -444,7 +444,6 @@ def get_body_part_positions_eye_closed(positions, position_ts, eye_data,
 
     return data
 
-
 def cli_align_egocentric(db_path,
                          mouse=None):
     mouse_ids = list(mouse)
@@ -544,3 +543,251 @@ def cli_align_egocentric(db_path,
 
 
 
+
+# ------------------------------------------------------------------
+# analysis 4: plot the distance from each m2 body part to each eye of m1
+# ------------------------------------------------------------------
+
+
+
+def func_speed_tracking_data(tracking_data):
+    body_parts = tracking_data['body_parts'].keys() #make a list for the body parts
+    for body_part in body_parts: #look at one bodypart
+        position = tracking_data['body_parts'][body_part]['position'] #get the position data for this body_part
+        position_difference = np.diff(position,axis=0) #calculate the difference vector of position. This means that this array has one less element.
+        velocity_not_same_size = np.transpose([np.transpose(position_difference)[c] / np.diff(tracking_data['timestamps']) for c in range(len(np.transpose(position_difference)))]) #calculate the velocity vector by dividing through the time between two positions
+        velocity = np.transpose([np.insert(np.transpose(velocity_not_same_size)[c],0,np.nan) for c in range(len(np.transpose(velocity_not_same_size)))]) #add np.nan in front, so that the first element of the velocity vector is empty. And the second element is the velocity relative to the previous position
+        speed = np.asarray([np.sqrt(c[0]**2 +c[1]**2) for c in velocity]) #calculate the speed using the velocity
+        speed_averaged = [np.sum(speed[c-5:c+5])/(5*2+1) for c in range(len(speed))] #averaged over 5 frames before and after
+        tracking_data['body_parts'][body_part]['speed'] = speed #add the speed to the dictionary of tracking data
+        tracking_data['body_parts'][body_part]['speed_averaged'] = speed_averaged
+    return tracking_data
+
+
+
+def func_speed_eye_data(tracking_data,eye_data):
+    body_parts = list(tracking_data['body_parts'].keys())
+    for eye in eye_data.keys():
+        eye_data[eye]['speed_averaged'] = {}
+        eye_data[eye]['closed_eye_speed'] = {}
+        for body_part in body_parts:
+            speed_averaged_interpolate_f = interpolate.interp1d(tracking_data['timestamps'],tracking_data['body_parts'][body_part]['speed_averaged'],fill_value='extrapolate')
+            speed_averaged = speed_averaged_interpolate_f(eye_data[eye]['timestamps'])
+            closed_eye_speed = np.asarray([speed_averaged[c[0]:c[1]+1] for c in eye_data[eye]['eye_closed_interval']])
+            eye_data[eye]['speed_averaged'][body_part]=speed_averaged
+            eye_data[eye]['closed_eye_speed'][body_part] = closed_eye_speed
+    return eye_data
+
+
+
+def func_abs_distance(tracking_data,eye_data):
+    part_names_m2 = sorted([k for k in tracking_data['body_parts'].keys() if k.startswith('m2')])
+    for eye in eye_data.keys():
+        eye_data[eye]['distance_to_bodypart'] = {}
+        eye_data[eye]['closed_eye_distance'] = {}
+        for body_part_m2 in part_names_m2:
+            distance = np.sqrt(np.sum((tracking_data['body_parts']['m1_eyecam_'+eye]['position'] - tracking_data['body_parts'][body_part_m2]['position']) ** 2, axis=1))
+            distance_interpolate_f = interpolate.interp1d(tracking_data['timestamps'],distance,fill_value='extrapolate')
+            distance_eye_data = distance_interpolate_f(eye_data[eye]['timestamps'])
+            closed_eye_distance = np.asarray([distance_eye_data[c[0]:c[1] + 1] for c in eye_data[eye]['eye_closed_interval']])
+            tracking_data['body_parts'][body_part_m2]['distance_to_'+eye+'_eye'] = distance
+            eye_data[eye]['distance_to_bodypart'][body_part_m2] = distance_eye_data
+            eye_data[eye]['closed_eye_distance'][body_part_m2] = closed_eye_distance
+    return tracking_data,eye_data
+
+
+
+#this function makes plots of the distance from each m2 body part to each eyecam of m1
+def cli_distance_speed_plot(db_path, mouse=None):
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,
+                                                   video='rpi_camera_6',
+                                                   min_likelihood=.99,
+                                                   unit='cm')
+
+        #add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+
+        # load eye closure data
+        eye_data = load_eye_closure_data(rec_path)
+
+        #add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
+
+        #add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data,eye_data = func_abs_distance(tracking_data,eye_data)
+
+        part_names_m2 = sorted([k for k in tracking_data['body_parts'].keys() if k.startswith('m2')])
+        eyes = list(eye_data.keys())
+
+        fig, ax = plt.subplots(nrows=2, ncols=len(part_names_m2), sharex=True, sharey=False, figsize=[20, 5])
+        for i in range(len(eyes)):
+            for j in range(len(part_names_m2)):
+                ax[i][j].scatter(np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][part_names_m2[j]]),
+                                 np.concatenate(eye_data[eyes[i]]['closed_eye_speed'][part_names_m2[j]]))
+                ax[i][j].set_title('%s' % part_names_m2[j].replace('_', ' '))
+                ax[i][j].set_xlabel('y (cm)')
+                ax[i][j].set_ylabel('y (cm/s)')
+        fig.tight_layout()
+
+    return tracking_data, eye_data
+
+
+
+
+
+
+def cli_distance_histogram(db_path,mouse=None):
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,
+                                                   video='rpi_camera_6',
+                                                   min_likelihood=.99,
+                                                   unit='cm')
+
+        #add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+
+        # load eye closure data
+        eye_data = load_eye_closure_data(rec_path)
+
+        #add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
+
+        #add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data,eye_data = func_abs_distance(tracking_data,eye_data)
+
+        part_names_m2 = sorted([k for k in tracking_data['body_parts'].keys() if k.startswith('m2')])
+        eyes = list(eye_data.keys())
+
+        fig, ax = plt.subplots(nrows=2, ncols=len(part_names_m2), sharex=False, sharey=False, figsize=[15, 5])
+        for i in range(len(eyes)):
+            for j in range(len(part_names_m2)):
+                ax[i][j].hist(np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][part_names_m2[j]]), bins=12,
+                              range=(0, 30))
+                ax[i][j].set_title('%s' % part_names_m2[j].replace('_', ' '))
+                ax[i][j].set_xlabel('distance (cm)')
+                ax[i][j].set_ylabel('#counts')
+                ax[i][j].set_xticks([5, 15, 25])
+        fig.tight_layout()
+    plt.show(block=True)
+
+
+
+
+
+
+
+def cli_minimal_distance_bodyparts(db_path, mouse=None):
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,
+                                                   video='rpi_camera_6',
+                                                   min_likelihood=.99,
+                                                   unit='cm')
+
+        # add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+
+        # load eye closure data
+        eye_data = load_eye_closure_data(rec_path)
+
+        # add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data, eye_data)
+
+        # add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data, eye_data = func_abs_distance(tracking_data, eye_data)
+
+        eyes = list(eye_data.keys())
+        m2_bodyparts = list(eye_data['left']['closed_eye_distance'].keys())
+
+        fig, ax = plt.subplots(nrows=2, ncols=2, sharex=False, sharey=False, figsize=[15, 5])
+        for i in range(len(eyes)):
+            for j in range(2):
+                if j == 0:  # minimal distance
+                    distance_bodypart_matrix = np.array(
+                        [np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][m2_bodypart]) for m2_bodypart in
+                         m2_bodyparts])
+                    min_distance = np.nanmin(distance_bodypart_matrix, axis=0)
+                    ax[i][j].hist(min_distance, bins=16, range=(0, 30))
+                    ax[i][j].set_title('%s %s' % (eyes[i], ' eye minimal distance'))
+                    ax[i][j].set_xlabel('distance (cm)')
+                    ax[i][j].set_ylabel('#counts')
+                    ax[i][j].set_xticks([5, 15, 25])
+                if j == 1:  # closest bodypart
+                    distance_bodypart_matrix = np.array(
+                        [np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][m2_bodypart]) for m2_bodypart in
+                         m2_bodyparts])
+                    closest_bodypart = [i for c in range(len(distance_bodypart_matrix[0])) for i, j in
+                                        enumerate(distance_bodypart_matrix[:, c]) if
+                                        j == np.nanmin(distance_bodypart_matrix[:, c])]
+                    ax[i][j].hist(closest_bodypart, bins=8, range=(0, 8), align='left')
+                    ax[i][j].set_title('%s %s' % (eyes[i], ' eye closest bodypart'))
+                    ax[i][j].set_ylabel('#counts')
+                    ax[i][j].set_xticklabels(labels=m2_bodyparts, rotation=45, rotation_mode="anchor")
+        fig.tight_layout()
+    plt.show(block=True)
+
+
+
+def cli_closed_eye_nan_counts(db_path,
+                         mouse=None):
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,
+                                                   video='rpi_camera_6',
+                                                   min_likelihood=.99,
+                                                   unit='cm')
+
+        #add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+
+        # load eye closure data
+        eye_data = load_eye_closure_data(rec_path)
+
+        #add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
+
+        #add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data,eye_data = func_abs_distance(tracking_data,eye_data)
+
+        m2_bodyparts = sorted([k for k in tracking_data['body_parts'].keys() if k.startswith('m2')])
+
+        nan_dict = {}
+        for eye in ['left', 'right']:
+            nan_dict[eye] = {}
+            for bodypart in m2_bodyparts:
+                nan_dict[eye][bodypart] = {}
+                nan_dict[eye][bodypart]["#nan"] = len(
+                    [c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)])
+                nan_dict[eye][bodypart]["%nan"] = str(round(100 * (len(
+                    [c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)]) / len(
+                    np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]))))) + "%"
+        pprint.pprint(nan_dict)
+
+
+
+db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
+mouse1 = ['M4081']
+tracking_data,eye_data = cli_distance_speed_plot(db_path1,mouse1)

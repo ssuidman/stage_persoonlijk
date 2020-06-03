@@ -571,8 +571,259 @@ fig.show()
 
 
 
-@click.command(name='distance-speed-plot')
+def cli_distance_histogram(db_path,mouse=None):
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,
+                                                   video='rpi_camera_6',
+                                                   min_likelihood=.99,
+                                                   unit='cm')
+
+        #add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+
+        # load eye closure data
+        eye_data = load_eye_closure_data(rec_path)
+
+        #add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
+
+        #add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data,eye_data = func_abs_distance(tracking_data,eye_data)
+
+        part_names_m2 = sorted([k for k in tracking_data['body_parts'].keys() if k.startswith('m2')])
+        eyes = list(eye_data.keys())
+
+        fig, ax = plt.subplots(nrows=2, ncols=len(part_names_m2), sharex=False, sharey=False, figsize=[20, 5])
+        for i in range(len(eyes)):
+            for j in range(len(part_names_m2)):
+                ax[i][j].hist(np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][part_names_m2[j]]), bins=12,
+                              range=(0, 30))
+                ax[i][j].set_title('%s' % part_names_m2[j].replace('_', ' '))
+                ax[i][j].set_xlabel('distance (cm)')
+                ax[i][j].set_ylabel('#counts')
+                ax[i][j].set_xticks([0, 5, 10, 15, 20, 25, 30])
+        fig.tight_layout()
+    plt.show(block=True)
+
+
+
+
+
+
+
+@click.command(name='minimal-distance-bodyparts')
 @click.argument('db_path', type=click.Path())
 @click.option('--mouse', '-m', default=['M3728', 'M3729', 'M4081'], multiple=True)
 
-cli.add_command(cli_distance_speed_plot)
+
+def cli_minimal_distance_bodyparts(db_path,mouse=None):
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,
+                                                   video='rpi_camera_6',
+                                                   min_likelihood=.99,
+                                                   unit='cm')
+
+        #add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+
+        # load eye closure data
+        eye_data = load_eye_closure_data(rec_path)
+
+        #add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
+
+        #add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data,eye_data = func_abs_distance(tracking_data,eye_data)
+
+        eyes = list(eye_data.keys())
+        m2_bodyparts = list(eye_data['left']['closed_eye_distance'].keys())
+
+        fig, ax = plt.subplots(nrows=2, ncols=2, sharex=False, sharey=False, figsize=[15, 5])
+        for i in range(len(eyes)):
+            for j in range(2):
+                if j == 0: #minimal distance
+                    distance_bodypart_matrix = np.array([np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][m2_bodypart]) for m2_bodypart in m2_bodyparts])
+                    min_distance = np.nanmin(distance_bodypart_matrix, axis=0)
+                    ax[i][j].hist(min_distance, bins=16,range=(0, 30))
+                    ax[i][j].set_title('%s %s' % (eyes[i],'minimal distance'))
+                    ax[i][j].set_xlabel('distance (cm)')
+                    ax[i][j].set_ylabel('#counts')
+                    ax[i][j].set_xticks([5, 15, 25])
+                if j==1: #closest bodypart
+                    distance_bodypart_matrix = np.array([np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][m2_bodypart]) for m2_bodypart in m2_bodyparts])
+                    closest_bodypart = [i for c in range(len(distance_bodypart_matrix[0])) for i,j in enumerate(distance_bodypart_matrix[:,c]) if j==np.nanmin(distance_bodypart_matrix[:,c])]
+                    ax[i][j].hist(closest_bodypart, bins=8, range=(0,8),align='left')
+                    ax[i][j].set_title('%s %s' % (eyes[i], 'closest bodypart'))
+                    ax[i][j].set_ylabel('#counts')
+                    ax[i][j].set_xticklabels(labels=m2_bodyparts, rotation=45, rotation_mode="anchor")
+        fig.tight_layout()
+    plt.show(block=True)
+
+cli.add_command(cli_minimal_distance_bodyparts)
+
+
+db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
+mouse1 = ['M4081']
+cli_distance_bodyparts(db_path1,mouse1)
+
+
+#here the amount of counts and the percentage can be calculated.
+
+def cli_closed_eye_nan(eye_data):
+nan_dict = {}
+for eye in ['left', 'right']:
+    nan_dict[eye] = {}
+    for bodypart in m2_bodyparts:
+        nan_dict[eye][bodypart] = {}
+        nan_dict[eye][bodypart]["#nan"] = len(
+            [c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)])
+        nan_dict[eye][bodypart]["%nan"] = str(round(100 * (len(
+            [c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)]) / len(
+            np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]))))) + "%"
+
+
+
+
+
+@click.command(name='closed-eye-nan-counts')
+@click.argument('db_path', type=click.Path())
+@click.option('--mouse', '-m', default=['M3728', 'M3729', 'M4081'], multiple=True)
+
+def cli_closed_eye_nan_counts(db_path,
+                         mouse=None):
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,
+                                                   video='rpi_camera_6',
+                                                   min_likelihood=.99,
+                                                   unit='cm')
+
+        #add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+
+        # load eye closure data
+        eye_data = load_eye_closure_data(rec_path)
+
+        #add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
+
+        #add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data,eye_data = func_abs_distance(tracking_data,eye_data)
+
+        part_names_m2 = sorted([k for k in tracking_data['body_parts'].keys() if k.startswith('m2')])
+        eyes = list(eye_data.keys())
+
+        nan_dict = {}
+        for eye in ['left', 'right']:
+            nan_dict[eye] = {}
+            for bodypart in m2_bodyparts:
+                nan_dict[eye][bodypart] = {}
+                nan_dict[eye][bodypart]["#nan"] = len(
+                    [c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)])
+                nan_dict[eye][bodypart]["%nan"] = str(round(100 * (len(
+                    [c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)]) / len(
+                    np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]))))) + "%"
+        print(nan_dict)
+
+cli.add_command(cli_closed_eye_nan)
+
+
+
+eye_closed_interval = [np.asarray(range(c[0],c[1]+1)) for c in eye_data['left']['eye_closed_interval']]
+eye_closed_interval2 = np.concatenate(eye_closed_interval)
+
+
+eye_closed_timestamps = np.concatenate([eye_data['left']['timestamps'][c[0]:c[1]+1] for c in eye_data['left']['eye_closed_interval']])
+all_timestamps = eye_data['left']['timestamps']
+timestamps_with_zeros = [c if c in eye_closed_timestamps else 0 for c in all_timestamps]
+interp_f_zeros = interpolate.interp1d(all_timestamps,timestamps_with_zeros)
+timestamps_zeros_tracking_data = interp_f_zeros(tracking_data['timestamps'])
+indices_tracking_data =
+
+
+
+
+
+
+import imageio
+#with ... as ...: opens and closes a file, this is nice because otherwise the files stays opened.
+with imageio.get_reader("/Users/samsuidman/Downloads/no_time_to_die.mp4") as billie: #instead writing the path you can also write --> billie_mp4_path
+    metadata = billie.get_meta_data() #this contains the metadata, such as  fps (frames per second), duration, etc.
+    frames = billie.count_frames() #counting the amount of frames (=6365)
+    data = billie.get_data(2364) #this contains the data from the 2364's frame. The max number between brackets is in this case 6364
+metadata
+frames
+data
+
+#import plt
+import matplotlib.pyplot as plt
+plt.imshow(data)
+plt.show()
+
+
+
+
+import imageio
+#with ... as ...: opens and closes a file, this is nice because otherwise the files stays opened.
+with imageio.get_reader("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database/M3728/2019_07_09/social_interaction/2019-07-09_15-06-35_Silence_box_no_enclosure_M3729/rpi_camera_4.mp4") as billie: #instead writing the path you can also write --> billie_mp4_path
+    metadata = billie.get_meta_data() #this contains the metadata, such as  fps (frames per second), duration, etc.
+    frames = billie.count_frames() #counting the amount of frames (=6365)
+    data = billie.get_data(2364) #this contains the data from the 2364's frame. The max number between brackets is in this case 6364
+metadata
+frames
+data
+
+#import plt
+import matplotlib.pyplot as plt
+plt.imshow(data)
+plt.show()
+
+##############################################################
+##############################################################
+##############################################################
+##############################################################
+##############################################################
+##############################################################
+##############################################################
+##############################################################
+##############################################################
+##############################################################
+
+
+
+# What do I need?
+# --> video frames indices of cam5 of cam6 (maybe from timestamps) where eye closure takes place.
+eye_closed_timestamps = np.concatenate([eye_data['left']['timestamps'][c[0]:c[1]+1] for c in eye_data['left']['eye_closed_interval']])
+interp_g = interpolate.interp1d(tracking_data['timestamps'],list(range(len(tracking_data['timestamps']))))
+eye_closed_tracking_data_interval = (np.round(interp_g(eye_closed_timestamps))).astype(int)
+
+#First import func_video_writer from DLC_Mice_script_functions
+#This makes a video of cam5 for the closed eye intervals:
+#func_video_writer("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam5/raw_video/rpi_camera_5.mp4",[eye_closed_tracking_data_interval])
+
+# --> (high likelihood) x,y coordinates of m1 eyes/nose from the eye_closure indices
+
+
+# --> video frame indices match h5_file indices
+
+######For the sake of looking at good circle pictures, there is no need that this is a closed eye event for now
+# --> so then pictures of closed eye events can be obtained with 3 x,y scatter points (for start begin with one closure index)
+# --> With this information make a triangle of left eye, right eye, nose tip and set a cirkle point in the middle of these points (centroid, zwaartepunt)
+# --> draw a circle of 30 mm around this center
