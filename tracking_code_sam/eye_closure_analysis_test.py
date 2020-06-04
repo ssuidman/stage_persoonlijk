@@ -13,6 +13,7 @@ from scipy import interpolate
 import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
+import imageio
 
 sys.path.append("/Users/samsuidman/Desktop/git_arne/common")
 import helpers
@@ -30,17 +31,29 @@ def get_recordings_mouse(mouse_id):
                   'interaction': '2019-07-09_15-06-35_Silence_box_no_enclosure_M3729',
                   'alone': '2019-07-09_14-55-57_Silence_box_no_enclosure',
                   'eyelid_left': 'rpi_camera_3DLC_resnet50_M3728_eyelidMar18shuffle1_1030000.h5',
-                  'eyelid_right': 'rpi_camera_4DLC_resnet50_M3728_eyelidMar25shuffle1_1030000.h5'},
+                  'eyelid_right': 'rpi_camera_4DLC_resnet50_M3728_eyelidMar25shuffle1_1030000.h5',
+                  'camera_5_mice': 'rpi_camera_5DLC_resnet50_M3728_miceFeb14shuffle1_1030000.h5',
+                  'camera_5_box': 'rpi_camera_5DLC_resnet50_M3728_boxFeb14shuffle1_500000.h5',
+                  'camera_6_mice': 'rpi_camera_6DLC_resnet50_M3728_miceFeb14shuffle1_1030000.h5',
+                  'camera_6_box': 'rpi_camera_6DLC_resnet50_M3728_boxFeb14shuffle1_500000.h5'},
         'M3729': {'session': 'M3729/2019_07_08/social_interaction',
                   'interaction': '2019-07-08_12-15-38_Silence_box_no_enclosure_M3728',
                   'alone': '2019-07-08_12-05-16_Silence_box_no_enclosure',
                   'eyelid_left': 'rpi_camera_3DLC_resnet50_M3729_eyelidMar18shuffle1_500000.h5',
-                  'eyelid_right': 'rpi_camera_4DLC_resnet50_M3729_eyelidMar18shuffle1_500000.h5'},
+                  'eyelid_right': 'rpi_camera_4DLC_resnet50_M3729_eyelidMar18shuffle1_500000.h5',
+                  'camera_5_mice': 'rpi_camera_5DLC_resnet50_M3729_miceFeb20shuffle1_1030000.h5',
+                  'camera_5_box': 'rpi_camera_5DLC_resnet50_M3729_boxFeb20shuffle1_1030000.h5',
+                  'camera_6_mice': 'rpi_camera_6DLC_resnet50_M3729_miceFeb20shuffle1_1030000.h5',
+                  'camera_6_box': 'rpi_camera_6DLC_resnet50_M3729_boxFeb20shuffle1_1030000.h5'},
         'M4081': {'session': 'M4081/2019_08_07/social_interaction',
                   'interaction': '2019-08-07_15-59-38_Silence_box_no_enclosure_M3729',
                   'alone': '2019-08-07_15-45-22_Silence_box_no_enclosure',
                   'eyelid_left': 'rpi_camera_3DLC_resnet50_M4081_eyelidMar19shuffle1_1030000.h5',
-                  'eyelid_right': 'rpi_camera_4DLC_resnet50_M4081_eyelidMar19shuffle1_1030000.h5'}
+                  'eyelid_right': 'rpi_camera_4DLC_resnet50_M4081_eyelidMar19shuffle1_1030000.h5',
+                  'camera_5_mice': 'rpi_camera_5DLC_resnet50_M4081_miceFeb20shuffle1_1030000.h5',
+                  'camera_5_box': 'rpi_camera_5DLC_resnet50_M4081_boxFeb20shuffle1_1030000.h5',
+                  'camera_6_mice': 'rpi_camera_6DLC_resnet50_M4081_miceFeb20shuffle1_1030000.h5',
+                  'camera_6_box': 'rpi_camera_6DLC_resnet50_M4081_boxFeb20shuffle1_1030000.h5'}
     }
 
     return recordings_mice[mouse_id]

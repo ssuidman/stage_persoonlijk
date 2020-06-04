@@ -351,3 +351,85 @@ fps_cam6 = reader_cam6.get_meta_data()['fps']
 data = func_four_images(data0_right,data0_left,data0_cam5,data0_cam6)
 writer = imageio.get_writer("/Users/samsuidman/Desktop/likelihood_figures/four_images.png")
 writer.append_data(data)
+
+
+
+
+
+
+
+
+# -------------------------------------------------------------------------------------------------------------------
+#  Making a whisker radius around the mouse head center. This can be copy pasted under eye_closure_analysis_test.py
+# -------------------------------------------------------------------------------------------------------------------
+
+def closed_eye_tracking_data(tracking_data,eye_data):
+    #First add to the tracking_data, the frames where eyes are closed
+    tracking_data['eye_closed_interval'] = {}
+    for eye in ['left','right']:
+        eye_closed_timestamps_eye_data = np.concatenate([eye_data[eye]['timestamps'][c[0]:c[1] + 1] for c in eye_data[eye]['eye_closed_interval']])
+        interp_f = interpolate.interp1d(tracking_data['timestamps'], list(range(len(tracking_data['timestamps']))))
+        eye_closed_interval_tracking_data = (np.round(interp_f(eye_closed_timestamps_eye_data))).astype(int)
+        tracking_data['eye_closed_interval'][eye] = eye_closed_interval_tracking_data
+    return tracking_data
+
+
+def whisker_model(db_path,mouse=None,camera_number=6,circle_radius=1.5): #circle radius in cm
+    assert camera_number in [5,6]
+
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,video='rpi_camera_'+str(camera_number),min_likelihood=.99,unit='cm')
+        eye_data = load_eye_closure_data(rec_path)
+
+        #add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+        # load eye closure data
+        #add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
+        #add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data,eye_data = func_abs_distance(tracking_data,eye_data)
+        #add the intervals where the eyes are closed to the tracking_data (so with tracking_data timestamps)
+        tracking_data = closed_eye_tracking_data(tracking_data,eye_data)
+
+        #load the h5_file that belongs to mouse M3728 e.g. seen from camera 5 or 6 (camera_number)
+        h5_file = pd.read_hdf(op.join(rec_path, recordings_mouse['camera_'+str(camera_number)+'_mice']))
+        # Then make a lists of left eye, right eye, nose tip, (x,y,likelihood) list where the likelihood>0.99 for all parts.
+        eye_left = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_left']))[:len(tracking_data['timestamps'])]
+        eye_right = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_right']))[:len(tracking_data['timestamps'])]
+        nose_tip = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_nose_tip']))[:len(tracking_data['timestamps'])]
+        eye_mid = np.array([[(eye_left[c, 0] + eye_right[c, 0]) / 2, (eye_left[c, 1] + eye_right[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+        head_mid = np.array([[(eye_mid[c, 0] + nose_tip[c, 0]) / 2, (eye_mid[c, 1] + nose_tip[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+        #now look at the places where likelihood_threshold>0.99
+        min_likelihood=0.99
+        indices_99 = np.array([i for i in range(len(eye_left[:, 2])) if eye_left[:, 2][i] > min_likelihood and eye_right[:, 2][i] > min_likelihood and nose_tip[:, 2][i] > min_likelihood])
+#        eye_left_99 = eye_left[indices_99] #and for head_mid etc
+
+        #now try to make look at the pictures with a center at a certain place
+        pix_per_cm = helpers.get_pixels_per_centimeter(rec_path,video='rpi_camera_'+str(camera_number),marker1='corner_left_left',  marker2='corner_lower_right')
+        r = circle_radius*pix_per_cm
+        reader = imageio.get_reader(op.join(rec_path,"rpi_camera_"+str(camera_number)+".mp4"))
+        for i in [indices_99[0], indices_99[100], indices_99[200], indices_99[300], indices_99[400], indices_99[500]]:
+            data = reader.get_data(i)
+            fig, ax = plt.subplots()
+            ax.imshow(data)
+            #ax.scatter(eye_left[i, 0], eye_left[i, 1])
+            #ax.scatter(eye_right[i, 0], eye_right[i, 1])
+            #ax.scatter(nose_tip[i, 0], nose_tip[i, 1])
+            #ax.scatter(head_mid[i, 0], head_mid[i, 1])
+            circle = plt.Circle((head_mid[i,0], head_mid[i,1]),r, color='red',fill=False,linewidth=1)
+            ax.add_patch(circle)
+            fig.show()
+        reader.close()
+
+    return tracking_data,eye_data
+
+
+db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
+mouse1 = ['M4081']
+tracking_data,eye_data = whisker_model(db_path1,mouse1)

@@ -816,7 +816,8 @@ plt.show()
 #func_video_writer("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam5/raw_video/rpi_camera_5.mp4",[eye_closed_tracking_data_interval])
 
 # --> (high likelihood) x,y coordinates of m1 eyes/nose from the eye_closure indices
-def f(eye_data,tracking_data,h5_file):
+def f(eye_data,tracking_data,h5_file,db_path):
+
     #First add to the tracking_data, the frames where eyes are closed
     tracking_data['eye_closed_interval'] = {}
     for eye in ['left','right']:
@@ -826,14 +827,25 @@ def f(eye_data,tracking_data,h5_file):
         tracking_data['eye_closed_interval'][eye] = eye_closed_interval_tracking_data
 
     #Then make a lists of left eye, right eye, nose tip, (x,y,likelihood) list where the likelihood>0.99 for all parts.
-    eye_left = np.transpose(np.array([mice_cam5_h5[c] for c in mice_cam5_h5.keys() if c[1] == 'm1_eyecam_left']))[:len(tracking_data['timestamps'])]
-    eye_right = np.transpose(np.array([mice_cam5_h5[c] for c in mice_cam5_h5.keys() if c[1] == 'm1_eyecam_right']))[:len(tracking_data['timestamps'])]
-    nose_tip = np.transpose(np.array([mice_cam5_h5[c] for c in mice_cam5_h5.keys() if c[1] == 'm1_nose_tip']))[:len(tracking_data['timestamps'])]
+    eye_left = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_left']))[:len(tracking_data['timestamps'])]
+    eye_right = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_right']))[:len(tracking_data['timestamps'])]
+    nose_tip = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_nose_tip']))[:len(tracking_data['timestamps'])]
+    eye_mid = np.array([[(eye_left[c, 0] + eye_right[c, 0]) / 2, (eye_left[c, 1] + eye_right[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+    head_mid = np.array([[(eye_mid[c, 0] + nose_tip[c, 0]) / 2, (eye_mid[c, 1] + nose_tip[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
     indices_99 = np.array([i for i in range(len(eye_left[:,2])) if eye_left[:,2][i]>0.99 and eye_right[:,2][i]>0.99 and nose_tip[:,2][i]>0.99])
-    eye_left_99 = eye_left[indices_99]
-    eye_right_99 = eye_right[indices_99]
-    nose_tip_99 = nose_tip[indices_99]
+#    eye_left_99 = eye_left[indices_99] #and for others
 
+#make the
+    reader = imageio.get_reader()
+    for i in [indices_99[50], indices_99[100], indices_99[150], indices_99[200], indices_99[250]]:
+        data = reader.get_data(i)
+        plt.imshow(data)
+        plt.scatter(eye_left[i, 0], eye_left[i, 1])
+        plt.scatter(eye_right[i, 0], eye_right[i, 1])
+        plt.scatter(nose_tip[i, 0], nose_tip[i, 1])
+        plt.scatter(head_mid[i, 0], head_mid[i, 1])
+        plt.show()
+    reader.close()
 #    transformed_positions,centers,angles = transformed_positions(tracking_data)
 #    eye_left_transformed = np.array([[transformed_positions['m1_eyecam_left'][c,0],transformed_positions['m1_eyecam_left'][c,1],tracking_data['body_parts']['m1_eyecam_left']['likelihood'][c]] for c in range(len(tracking_data['body_parts']['m1_eyecam_left']['likelihood']))])
 #    eye_right_transformed = np.array([[transformed_positions['m1_eyecam_right'][c, 0],transformed_positions['m1_eyecam_right'][c, 1],tracking_data['body_parts']['m1_eyecam_right']['likelihood'][c]] for c in range(len(tracking_data['body_parts']['m1_eyecam_right']['likelihood']))])
@@ -848,16 +860,98 @@ def f(eye_data,tracking_data,h5_file):
 # --> With this information make a triangle of left eye, right eye, nose tip and set a circle point in the middle of these points (centroid, zwaartepunt)
 # --> draw a circle of 30 mm around this center
 
+def func_path(var_working_path): #returns an absolute working path as a variable
+    var_abs_working_path = os.path.abspath(var_working_path)
+    return var_abs_working_path
+mice_cam5_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam5/mice/rpi_camera_5DLC_resnet50_M3728_miceFeb14shuffle1_1030000.h5")
+mice_cam6_h5_path = func_path("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/h5/M3728/together/cam6/mice/rpi_camera_6DLC_resnet50_M3728_miceFeb14shuffle1_1030000.h5")
+def func_h5_reader(var_path_to_h5_file): #reads a h5 file using the path to the file as a variable
+    var_h5_file = pd.read_hdf(var_path_to_h5_file)
+    return var_h5_file
+mice_cam5_h5 = func_h5_reader(mice_cam5_h5_path)
+mice_cam6_h5 = func_h5_reader(mice_cam6_h5_path)
 
 
-import imageio
 reader = imageio.get_reader("/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam5/raw_video/rpi_camera_5.mp4")
-writer = imageio.get_writer("/Users/samsuidman/Desktop/video_test_map/closed_eye_video.mp4",fps=50)
-for i in indices_99:
+for i in [indices_99[50],indices_99[100],indices_99[150],indices_99[200],indices_99[250]]:
     data = reader.get_data(i)
     plt.imshow(data)
     plt.scatter(eye_left[i,0],eye_left[i,1])
     plt.scatter(eye_right[i,0],eye_right[i,1])
     plt.scatter(nose_tip[i,0],nose_tip[i,1])
-plt.show()
-writer.close()
+    plt.scatter(head_mid[i,0],head_mid[i,1])
+    plt.show()
+
+
+
+def closed_eye_tracking_data(tracking_data,eye_data):
+    #First add to the tracking_data, the frames where eyes are closed
+    tracking_data['eye_closed_interval'] = {}
+    for eye in ['left','right']:
+        eye_closed_timestamps_eye_data = np.concatenate([eye_data[eye]['timestamps'][c[0]:c[1] + 1] for c in eye_data[eye]['eye_closed_interval']])
+        interp_f = interpolate.interp1d(tracking_data['timestamps'], list(range(len(tracking_data['timestamps']))))
+        eye_closed_interval_tracking_data = (np.round(interp_f(eye_closed_timestamps_eye_data))).astype(int)
+        tracking_data['eye_closed_interval'][eye] = eye_closed_interval_tracking_data
+    return tracking_data
+
+
+def whisker_model(db_path,mouse=None,camera_number=6,circle_radius=1.5): #circle radius in cm
+    assert camera_number in [5,6]
+
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path,video='rpi_camera_'+str(camera_number),min_likelihood=.99,unit='cm')
+        eye_data = load_eye_closure_data(rec_path)
+
+        #add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+        # load eye closure data
+        #add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data,eye_data)
+        #add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data,eye_data = func_abs_distance(tracking_data,eye_data)
+        #add the intervals where the eyes are closed to the tracking_data (so with tracking_data timestamps)
+        tracking_data = closed_eye_tracking_data(tracking_data,eye_data)
+
+        #load the h5_file that belongs to mouse M3728 e.g. seen from camera 5 or 6 (camera_number)
+        h5_file = pd.read_hdf(op.join(rec_path, recordings_mouse['camera_'+str(camera_number)+'_mice']))
+        # Then make a lists of left eye, right eye, nose tip, (x,y,likelihood) list where the likelihood>0.99 for all parts.
+        eye_left = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_left']))[:len(tracking_data['timestamps'])]
+        eye_right = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_right']))[:len(tracking_data['timestamps'])]
+        nose_tip = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_nose_tip']))[:len(tracking_data['timestamps'])]
+        eye_mid = np.array([[(eye_left[c, 0] + eye_right[c, 0]) / 2, (eye_left[c, 1] + eye_right[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+        head_mid = np.array([[(eye_mid[c, 0] + nose_tip[c, 0]) / 2, (eye_mid[c, 1] + nose_tip[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+        #now look at the places where likelihood_threshold>0.99
+        min_likelihood=0.99
+        indices_99 = np.array([i for i in range(len(eye_left[:, 2])) if eye_left[:, 2][i] > min_likelihood and eye_right[:, 2][i] > min_likelihood and nose_tip[:, 2][i] > min_likelihood])
+#        eye_left_99 = eye_left[indices_99] #and for head_mid etc
+
+        #now try to make look at the pictures with a center at a certain place
+        pix_per_cm = helpers.get_pixels_per_centimeter(rec_path,video='rpi_camera_'+str(camera_number),marker1='corner_left_left',  marker2='corner_lower_right')
+        r = circle_radius*pix_per_cm
+        reader = imageio.get_reader(op.join(rec_path,"rpi_camera_"+str(camera_number)+".mp4"))
+        for i in [indices_99[0], indices_99[100], indices_99[200], indices_99[300], indices_99[400], indices_99[500]]:
+            data = reader.get_data(i)
+            fig, ax = plt.subplots()
+            ax.imshow(data)
+            #ax.scatter(eye_left[i, 0], eye_left[i, 1])
+            #ax.scatter(eye_right[i, 0], eye_right[i, 1])
+            #ax.scatter(nose_tip[i, 0], nose_tip[i, 1])
+            #ax.scatter(head_mid[i, 0], head_mid[i, 1])
+            circle = plt.Circle((head_mid[i,0], head_mid[i,1]),r, color='red',fill=False,linewidth=1)
+            ax.add_patch(circle)
+            fig.show()
+        reader.close()
+
+    return tracking_data,eye_data
+
+
+db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
+mouse1 = ['M4081']
+tracking_data,eye_data = whisker_model(db_path1,mouse1)
+
