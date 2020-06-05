@@ -97,6 +97,9 @@
       </list>
     </recent_temporary>
   </component>
+  <component name="ServiceViewManager">
+    <option name="showServicesTree" value="false" />
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -157,7 +160,7 @@
       <workItem from="978307277927" duration="5774000" />
       <workItem from="1591177403087" duration="15055000" />
       <workItem from="978307272894" duration="25587000" />
-      <workItem from="1591345063473" duration="10898000" />
+      <workItem from="1591345063473" duration="23033000" />
     </task>
     <servers />
   </component>

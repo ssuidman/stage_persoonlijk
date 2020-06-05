@@ -937,32 +937,59 @@ def whisker_model(db_path,mouse=None,camera_number=6,circle_radius=1.5): #circle
 
         #now try to make look at the pictures with a center at a certain place
         pix_per_cm = helpers.get_pixels_per_centimeter(rec_path,video='rpi_camera_'+str(camera_number),marker1='corner_left_left',  marker2='corner_lower_right')
+        mid_estimate_x_cm = mid_estimate_x/pix_per_cm
+        mid_estimate_y_cm = mid_estimate_y/pix_per_cm
         r = circle_radius*pix_per_cm
-        reader = imageio.get_reader(op.join(rec_path,"rpi_camera_"+str(camera_number)+".mp4"))
 
-        for i in [8000,11000,14000,17000]:
-            data = reader.get_data(i)
-            fig, ax = plt.subplots()
-            ax.imshow(data)
-            ax.scatter(eye_left[i, 0], eye_left[i, 1], color='blue', label='left eye')
-            ax.scatter(eye_right[i, 0], eye_right[i, 1], color='green', label='right eye')
-            #ax.scatter(nose_tip[i, 0], nose_tip[i, 1])
-            #ax.scatter(head_mid[i, 0], head_mid[i, 1])
-            ax.scatter(mid_estimate_x[i], mid_estimate_y[i], color='black', label='head center')
-            ax.plot([eye_left[i, 0], eye_right[i, 0]], [eye_left[i, 1], eye_right[i, 1]])
-            ax.plot([eye_mid[i, 0], mid_estimate_x[i]], [eye_mid[i, 1], mid_estimate_y[i]])
-            #circle = plt.Circle((head_mid[i,0], head_mid[i,1]),r, color='red',fill=False,linewidth=1)
-            circle = plt.Circle((mid_estimate_x[i], mid_estimate_y[i]), r, color='red', fill=False, linewidth=1,label='whisker range')
-            ax.add_patch(circle)
-            #ax.axis('scaled')
-            fig.legend()
-            fig.show()
-        reader.close()
+#        for i in [8000]:
+#            data = reader.get_data(i)
+#            fig, ax = plt.subplots()
+#            ax.imshow(data)
+#            ax.scatter(eye_left[i, 0], eye_left[i, 1], color='blue', label='left eye')
+#            ax.scatter(eye_right[i, 0], eye_right[i, 1], color='green', label='right eye')
+#            #ax.scatter(nose_tip[i, 0], nose_tip[i, 1])
+#            #ax.scatter(head_mid[i, 0], head_mid[i, 1])
+#            ax.scatter(mid_estimate_x[i], mid_estimate_y[i], color='black', label='head center')
+#            ax.plot([eye_left[i, 0], eye_right[i, 0]], [eye_left[i, 1], eye_right[i, 1]])
+#            ax.plot([eye_mid[i, 0], mid_estimate_x[i]], [eye_mid[i, 1], mid_estimate_y[i]])
+#            #circle = plt.Circle((head_mid[i,0], head_mid[i,1]),r, color='red',fill=False,linewidth=1)
+#            circle = plt.Circle((mid_estimate_x[i], mid_estimate_y[i]), r, color='red', fill=False, linewidth=1,label='whisker range')
+#            ax.add_patch(circle)
+#            #ax.axis('scaled') #if you want to check if the lines are perpendicular (then also imshow off)
+#            ax.axis('off') #no axes
+#            fig.legend()
+#            fig.show()
 
-    return tracking_data,eye_data,distance_99,eye_left,eye_right,eye_mid,indices_99,mid_estimate_x,mid_estimate_y
+        with imageio.get_reader(op.join(rec_path,"rpi_camera_"+str(camera_number)+".mp4")) as reader:
+            data = np.array([reader.get_data(i) for i in range(100)])
+
+        fps = 30  # frames per second of the output video
+        bitrate = -1  # -1: automatically determine bitrate (= quality); use 2500 - 3000 for high-quality videos
+        dpi = 150  # use 300 or more for higher quality
+        writer = FFMpegWriter(fps=fps, metadata=dict(title='simple video example'), codec='libx264', bitrate=bitrate)
+        fig, ax = plt.subplots()
+        first_frame = np.zeros((480, 640, 3), dtype=np.uint8)  # (height, width, rgb color channels)
+        img = ax.imshow(first_frame)
+        ax.axis('off')  # no axes
+        with writer.saving(fig, "/Users/samsuidman/Desktop/video_test_map/test_video_2.mp4", dpi=dpi):
+            for i in range(50):
+                print(i)
+                ax.clear()
+                ax.imshow(data[i])
+                ax.scatter(eye_left[i, 0], eye_left[i, 1], color='blue', label='left eye')
+                ax.scatter(eye_right[i, 0], eye_right[i, 1], color='green', label='right eye')
+                ax.scatter(mid_estimate_x[i], mid_estimate_y[i], color='black', label='head center')
+                ax.plot([eye_left[i, 0], eye_right[i, 0]], [eye_left[i, 1], eye_right[i, 1]])
+                ax.plot([eye_mid[i, 0], mid_estimate_x[i]], [eye_mid[i, 1], mid_estimate_y[i]])
+                # ax.axis('scaled') #if you want to check if the lines are perpendicular (then also imshow off)
+                circle = plt.Circle((mid_estimate_x[i], mid_estimate_y[i]), r, color='red', fill=False, linewidth=1,label='whisker range')
+                ax.add_patch(circle)
+                fig.legend()
+                writer.grab_frame()
+    return tracking_data,eye_data
 
 
 db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
 mouse1 = ['M4081']
-tracking_data,eye_data,distance_99,eye_left,eye_right,eye_mid,indices_99,mid_estimate_x,mid_estimate_y = whisker_model(db_path1,mouse1,6,1.5)
+tracking_data,eye_data = whisker_model(db_path1,mouse1,6,1.5)
 
