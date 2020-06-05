@@ -927,31 +927,42 @@ def whisker_model(db_path,mouse=None,camera_number=6,circle_radius=1.5): #circle
         eye_mid = np.array([[(eye_left[c, 0] + eye_right[c, 0]) / 2, (eye_left[c, 1] + eye_right[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
         head_mid = np.array([[(eye_mid[c, 0] + nose_tip[c, 0]) / 2, (eye_mid[c, 1] + nose_tip[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
         #now look at the places where likelihood_threshold>0.99
+
         min_likelihood=0.99
         indices_99 = np.array([i for i in range(len(eye_left[:, 2])) if eye_left[:, 2][i] > min_likelihood and eye_right[:, 2][i] > min_likelihood and nose_tip[:, 2][i] > min_likelihood])
-#        eye_left_99 = eye_left[indices_99] #and for head_mid etc
+        distance_99 = np.mean(np.sqrt((eye_mid[indices_99][:,0]-head_mid[indices_99][:,0])**2+(eye_mid[indices_99][:,1]-head_mid[indices_99][:,1])**2)) #look at the mean distance head_mid and eye_mid
+        theta = np.arctan((eye_right[:, 0] - eye_left[:, 0]) / (eye_right[:, 1] - eye_left[:, 1]))
+        mid_estimate_x = eye_mid[:, 0] + distance_99 * np.array([np.abs(np.cos(theta[c])) if eye_left[c, 1] < eye_right[c, 1] else -np.abs(np.cos(theta[c])) for c in range(len(theta))])
+        mid_estimate_y = eye_mid[:, 1] + distance_99 * np.array([np.abs(np.sin(theta[c])) if eye_left[c, 0] > eye_right[c, 0] else -np.abs(np.sin(theta[c])) for c in range(len(theta))])
 
         #now try to make look at the pictures with a center at a certain place
         pix_per_cm = helpers.get_pixels_per_centimeter(rec_path,video='rpi_camera_'+str(camera_number),marker1='corner_left_left',  marker2='corner_lower_right')
         r = circle_radius*pix_per_cm
         reader = imageio.get_reader(op.join(rec_path,"rpi_camera_"+str(camera_number)+".mp4"))
-        for i in [indices_99[0], indices_99[100], indices_99[200], indices_99[300], indices_99[400], indices_99[500]]:
+
+        for i in [8000,11000,14000,17000]:
             data = reader.get_data(i)
             fig, ax = plt.subplots()
             ax.imshow(data)
-            #ax.scatter(eye_left[i, 0], eye_left[i, 1])
-            #ax.scatter(eye_right[i, 0], eye_right[i, 1])
+            ax.scatter(eye_left[i, 0], eye_left[i, 1], color='blue', label='left eye')
+            ax.scatter(eye_right[i, 0], eye_right[i, 1], color='green', label='right eye')
             #ax.scatter(nose_tip[i, 0], nose_tip[i, 1])
             #ax.scatter(head_mid[i, 0], head_mid[i, 1])
-            circle = plt.Circle((head_mid[i,0], head_mid[i,1]),r, color='red',fill=False,linewidth=1)
+            ax.scatter(mid_estimate_x[i], mid_estimate_y[i], color='black', label='head center')
+            ax.plot([eye_left[i, 0], eye_right[i, 0]], [eye_left[i, 1], eye_right[i, 1]])
+            ax.plot([eye_mid[i, 0], mid_estimate_x[i]], [eye_mid[i, 1], mid_estimate_y[i]])
+            #circle = plt.Circle((head_mid[i,0], head_mid[i,1]),r, color='red',fill=False,linewidth=1)
+            circle = plt.Circle((mid_estimate_x[i], mid_estimate_y[i]), r, color='red', fill=False, linewidth=1,label='whisker range')
             ax.add_patch(circle)
+            #ax.axis('scaled')
+            fig.legend()
             fig.show()
         reader.close()
 
-    return tracking_data,eye_data
+    return tracking_data,eye_data,distance_99,eye_left,eye_right,eye_mid,indices_99,mid_estimate_x,mid_estimate_y
 
 
 db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
 mouse1 = ['M4081']
-tracking_data,eye_data = whisker_model(db_path1,mouse1)
+tracking_data,eye_data,distance_99,eye_left,eye_right,eye_mid,indices_99,mid_estimate_x,mid_estimate_y = whisker_model(db_path1,mouse1,6,1.5)
 
