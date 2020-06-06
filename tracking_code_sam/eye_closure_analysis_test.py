@@ -14,6 +14,10 @@ import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
 import matplotlib.pyplot as plt
 import imageio
+from matplotlib.animation import FFMpegWriter
+from matplotlib.patches import Circle
+import scipy.ndimage as ndimage
+import time
 
 sys.path.append("/Users/samsuidman/Desktop/git_arne/common")
 import helpers
@@ -759,6 +763,14 @@ def cli_minimal_distance_bodyparts(db_path, mouse=None):
 
 
 
+
+
+# --------------------------------------------------------------------------------------------
+# analysis 5: print a dictionary with the counts and and percentages of nan per m2_body_part
+# --------------------------------------------------------------------------------------------
+
+
+
 def cli_closed_eye_nan_counts(db_path,
                          mouse=None):
     mouse_ids = list(mouse)
@@ -801,6 +813,162 @@ def cli_closed_eye_nan_counts(db_path,
 
 
 
+
+
+
+
+
+# ------------------------------------------------------------------
+# analysis 6: make a video of the two mice with their whisker range
+# ------------------------------------------------------------------
+
+
+def closed_eye_tracking_data(tracking_data,eye_data):
+    #First add to the tracking_data, the frames where eyes are closed
+    tracking_data['eye_closed_interval'] = {}
+    for eye in ['left','right']:
+        eye_closed_timestamps_eye_data = np.concatenate([eye_data[eye]['timestamps'][c[0]:c[1] + 1] for c in eye_data[eye]['eye_closed_interval']])
+        interp_f = interpolate.interp1d(tracking_data['timestamps'], list(range(len(tracking_data['timestamps']))),fill_value='extrapolate')
+        eye_closed_interval_tracking_data = (np.round(interp_f(eye_closed_timestamps_eye_data))).astype(int)
+        tracking_data['eye_closed_interval'][eye] = eye_closed_interval_tracking_data
+    return tracking_data
+
+
+
+def cli_whisker_video(db_path, output_path, mouse=None, camera_number=6, whisker_radius=1.5,test=False):  # circle radius in cm, if you set test=True, then only the first 1000 video frames will be loaded
+    assert camera_number in [5, 6]
+
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+        print(mouse_id)
+        print('Loading data')
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path, video='rpi_camera_' + str(camera_number),min_likelihood=.99, unit='cm')
+        eye_data = load_eye_closure_data(rec_path)
+        # add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+        # load eye closure data
+        # add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data, eye_data)
+        # add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data, eye_data = func_abs_distance(tracking_data, eye_data)
+        # add the intervals where the eyes are closed to the tracking_data (so with tracking_data timestamps)
+        tracking_data = closed_eye_tracking_data(tracking_data, eye_data)
+
+        # load the h5_file that belongs to mouse M3728 e.g. seen from camera 5 or 6 (camera_number)
+        h5_file = pd.read_hdf(op.join(rec_path, recordings_mouse['camera_' + str(camera_number) + '_mice']))
+        # Then make a lists of left eye, right eye, nose tip, (x,y,likelihood) list where the likelihood>0.99 for all parts.
+        eye_left = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_left']))[:len(tracking_data['timestamps'])]
+        eye_right = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_right']))[:len(tracking_data['timestamps'])]
+        nose_tip = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_nose_tip']))[:len(tracking_data['timestamps'])]
+        eye_mid = np.array([[(eye_left[c, 0] + eye_right[c, 0]) / 2, (eye_left[c, 1] + eye_right[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+        head_mid = np.array([[(eye_mid[c, 0] + nose_tip[c, 0]) / 2, (eye_mid[c, 1] + nose_tip[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+
+        # now look at the places where likelihood_threshold>0.99
+        min_likelihood = 0.99
+        indices_99 = np.array([i for i in range(len(eye_left[:, 2])) if eye_left[:, 2][i] > min_likelihood and eye_right[:, 2][i] > min_likelihood and nose_tip[:, 2][i] > min_likelihood])
+        # look at the mean distance head_mid and eye_mid
+        distance_99 = np.mean(np.sqrt((eye_mid[indices_99][:, 0] - head_mid[indices_99][:, 0]) ** 2 + (eye_mid[indices_99][:, 1] - head_mid[indices_99][:, 1]) ** 2))
+        # calculate theta = dx/dy
+        theta = np.arctan((eye_right[:, 0] - eye_left[:, 0]) / (eye_right[:, 1] - eye_left[:, 1]))
+        # x_center = eye_mid + r*cos(theta). Here cos(theta) is taken absolute and there is looked for criteria when cos(theta) is positive or negative
+        mid_estimate_x = eye_mid[:, 0] + distance_99 * np.array([np.abs(np.cos(theta[c])) if eye_left[c, 1] < eye_right[c, 1] else -np.abs(np.cos(theta[c])) for c in range(len(theta))])
+        # y_center = eye_mid + r*sin(theta). Here sin(theta) is taken absolute and there is looked for criteria when sin(theta) is positive or negative
+        mid_estimate_y = eye_mid[:, 1] + distance_99 * np.array([np.abs(np.sin(theta[c])) if eye_left[c, 0] > eye_right[c, 0] else -np.abs(np.sin(theta[c])) for c in range(len(theta))])
+
+        # load the amount of pixels per cm
+        pix_per_cm = helpers.get_pixels_per_centimeter(rec_path, video='rpi_camera_' + str(camera_number),marker1='corner_left_left', marker2='corner_lower_right')
+        # look at the cm reference frame and where (x,y) for head center is
+        mid_estimate_x_cm = mid_estimate_x / pix_per_cm
+        mid_estimate_y_cm = mid_estimate_y / pix_per_cm
+        r = whisker_radius * pix_per_cm
+
+        #        for i in [8000]:
+        #            data = reader.get_data(i)
+        #            fig, ax = plt.subplots()
+        #            ax.imshow(data)
+        #            ax.scatter(eye_left[i, 0], eye_left[i, 1], color='blue', label='left eye')
+        #            ax.scatter(eye_right[i, 0], eye_right[i, 1], color='green', label='right eye')
+        #            #ax.scatter(nose_tip[i, 0], nose_tip[i, 1])
+        #            #ax.scatter(head_mid[i, 0], head_mid[i, 1])
+        #            ax.scatter(mid_estimate_x[i], mid_estimate_y[i], color='black', label='head center')
+        #            ax.plot([eye_left[i, 0], eye_right[i, 0]], [eye_left[i, 1], eye_right[i, 1]])
+        #            ax.plot([eye_mid[i, 0], mid_estimate_x[i]], [eye_mid[i, 1], mid_estimate_y[i]])
+        #            #circle = plt.Circle((head_mid[i,0], head_mid[i,1]),r, color='red',fill=False,linewidth=1)
+        #            circle = plt.Circle((mid_estimate_x[i], mid_estimate_y[i]), r, color='red', fill=False, linewidth=1,label='whisker range')
+        #            ax.add_patch(circle)
+        #            #ax.axis('scaled') #if you want to check if the lines are perpendicular (then also imshow off)
+        #            ax.axis('off') #no axes
+        #            fig.legend()
+        #            fig.show()
+
+        fps = 30  # frames per second of the output video
+        bitrate = -1  # -1: automatically determine bitrate (= quality); use 2500 - 3000 for high-quality videos
+        dpi = 150  # use 300 or more for higher quality
+        writer = FFMpegWriter(fps=fps, metadata=dict(title='simple video example'), codec='libx264', bitrate=bitrate)
+        reader = imageio.get_reader(op.join(rec_path, "rpi_camera_" + str(camera_number) + ".mp4"))
+        plt.style.use('dark_background')  # use dark figure background for videos
+        fig, ax = plt.subplots()  # create figure and axis
+        ax.axis('off')  # no axes
+
+        first_frame = np.zeros((480, 640, 3), dtype=np.uint8)  # (height, width, rgb color channels)
+        img = ax.imshow(first_frame)  # adding first figure
+
+        whisker_circle = plt.Circle((mid_estimate_x[0], mid_estimate_y[0]), radius=r, color='tab:red', fill=False, linewidth=1,label='whisker range')
+        ax.add_patch(whisker_circle)  # adding whisker circle
+
+        eye_left_circle = plt.Circle((eye_left[0, 0], eye_left[0, 1]), radius=pix_per_cm*0.5, color='tab:green', label='eye')
+        ax.add_patch(eye_left_circle)
+
+        eye_right_circle = plt.Circle((eye_right[0, 0], eye_right[0, 1]), radius=pix_per_cm*0.5, color='tab:green')
+        ax.add_patch(eye_right_circle)
+
+        head_mid_circle = plt.Circle((mid_estimate_x[0], mid_estimate_y[0]), radius=pix_per_cm*0.5, color='tab:blue',label='head center')
+        ax.add_patch(head_mid_circle)
+
+        eyes_line = ax.plot((eye_left[0, 0], eye_right[0, 0]), (eye_left[0, 1], eye_right[0, 1]), '-', color='tab:orange', lw=2)[0]
+
+        head_line = ax.plot((eye_mid[0, 0], mid_estimate_x[0]), (eye_mid[0, 1], mid_estimate_y[0]), '-', color='tab:orange', lw=2)[0]
+
+        fig.legend()
+
+        percentage = 0  # starting percentag for iteration
+        video_range = len(eye_left)  # the total amount of video frames
+        if test:
+            video_range = 1000
+        steps_of_showing = 100  # each hundredth (or what you want) is shown how much the video is processed
+        hundredth = video_range / steps_of_showing
+
+        print("Processing video")
+        with writer.saving(fig, op.abspath(output_path)+'/whisker_video_'+ mouse_id+'.mp4', dpi=dpi):
+            for i in range(video_range):
+
+                if i > hundredth:
+                    percentage += 1
+                    print(str(int(percentage * 100 / steps_of_showing)) + '%')
+                    hundredth += video_range / steps_of_showing
+
+                data = reader.get_data(i)
+                img.set_data(data)
+                whisker_circle.set_center((mid_estimate_x[i], mid_estimate_y[i]))
+                eye_left_circle.set_center((eye_left[i, 0], eye_left[i, 1]))
+                eye_right_circle.set_center((eye_right[i, 0], eye_right[i, 1]))
+                head_mid_circle.set_center((mid_estimate_x[i], mid_estimate_y[i]))
+                eyes_line.set_data((eye_left[i, 0], eye_right[i, 0]), (eye_left[i, 1], eye_right[i, 1]))
+                head_line.set_data((eye_mid[i, 0], mid_estimate_x[i]), (eye_mid[i, 1], mid_estimate_y[i]))
+
+                writer.grab_frame()
+        reader.close()
+
+
+
+
+
 db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
+output_path1 = "/Users/samsuidman/Desktop"
 mouse1 = ['M4081']
-tracking_data,eye_data = cli_distance_speed_plot(db_path1,mouse1)
+cli_whisker_video(db_path1, output_path1, mouse=mouse1):  # circle radius in cm
