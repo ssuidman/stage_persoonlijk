@@ -1005,6 +1005,13 @@ def cli_whisker_video(db_path, output_path, mouse=None, camera_number=6, whisker
 
         head_line = ax.plot((eye_mid[0, 0], mid_estimate_x[0]), (eye_mid[0, 1], mid_estimate_y[0]), '-', color='tab:orange', lw=2)[0]
 
+        body_parts_m2 = [body_part for body_part in tracking_data['body_parts'].keys() if 'm2' in body_part.split('_')] #list of m2 body parts
+        circles_m2 = {}
+        for body_part_m2 in body_parts_m2:
+            circle = plt.Circle((tracking_data['body_parts'][body_part_m2]['position'][0,0]*pix_per_cm,tracking_data['body_parts'][body_part_m2]['position'][1,0]*pix_per_cm))
+            circles_m2[body_part_m2] = circle
+            ax.add_patch(circle)
+
         fig.legend()
 
         percentage = 0  # starting percentag for iteration
@@ -1022,12 +1029,15 @@ def cli_whisker_video(db_path, output_path, mouse=None, camera_number=6, whisker
 
                 data = reader.get_data(i)
                 img.set_data(data)
-                whisker_circle.set_center((mid_estimate_x[i], mid_estimate_y[i]))
                 eye_left_circle.set_center((eye_left[i, 0], eye_left[i, 1]))
                 eye_right_circle.set_center((eye_right[i, 0], eye_right[i, 1]))
+                whisker_circle.set_center((mid_estimate_x[i], mid_estimate_y[i]))
                 head_mid_circle.set_center((mid_estimate_x[i], mid_estimate_y[i]))
                 eyes_line.set_data((eye_left[i, 0], eye_right[i, 0]), (eye_left[i, 1], eye_right[i, 1]))
                 head_line.set_data((eye_mid[i, 0], mid_estimate_x[i]), (eye_mid[i, 1], mid_estimate_y[i]))
+
+                for body_part_m2 in body_parts_m2:
+                    circles_m2[body_part_m2].set_center((tracking_data['body_parts'][body_part_m2]['position'][0,i]*pix_per_cm,tracking_data['body_parts'][body_part_m2]['position'][1,i]*pix_per_cm))
 
                 writer.grab_frame()
         reader.close()
@@ -1037,6 +1047,205 @@ cli.add_command(cli_whisker_video)
 
 db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
 mouse1 = ['M4081']
-tracking_data, eye_data = whisker_model(db_path=db_path1, output_path="/Users/samsuidman/Desktop/video_test_map" , mouse=mouse1, camera_number=6, whisker_radius=1.5)
+tracking_data, eye_data = cli_whisker_video(db_path=db_path1, output_path="/Users/samsuidman/Desktop/video_test_map" , mouse=mouse1, camera_number=6, whisker_radius=1.5)
 
 ###############################
+
+
+
+
+def cli_whisker_analysis(db_path,mouse=None,camera_number=6,whisker_radius=1.5):
+    assert camera_number in [5, 6]
+
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path, video='rpi_camera_' + str(camera_number),min_likelihood=.99, unit='cm')
+        eye_data = load_eye_closure_data(rec_path)
+        # add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+        # load eye closure data
+        # add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data, eye_data)
+        # add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data, eye_data = func_abs_distance(tracking_data, eye_data)
+        # add the intervals where the eyes are closed to the tracking_data (so with tracking_data timestamps)
+        tracking_data = closed_eye_tracking_data(tracking_data, eye_data)
+
+        # load the h5_file that belongs to mouse M3728 e.g. seen from camera 5 or 6 (camera_number)
+        h5_file = pd.read_hdf(op.join(rec_path, recordings_mouse['camera_' + str(camera_number) + '_mice']))
+        # Then make a lists of left eye, right eye, nose tip, (x,y,likelihood) list where the likelihood>0.99 for all parts.
+        #eye_left = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_left']))[:len(tracking_data['timestamps'])]
+        #eye_right = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_eyecam_right']))[:len(tracking_data['timestamps'])]
+        #nose_tip = np.transpose(np.array([h5_file[c] for c in h5_file.keys() if c[1] == 'm1_nose_tip']))[:len(tracking_data['timestamps'])]
+
+        eye_left = np.transpose(np.array([tracking_data['body_parts']['m1_eyecam_left']['position'][:,0],tracking_data['body_parts']['m1_eyecam_left']['position'][:,1],tracking_data['body_parts']['m1_eyecam_left']['likelihood']]))
+        eye_right = np.transpose(np.array([tracking_data['body_parts']['m1_eyecam_right']['position'][:, 0],tracking_data['body_parts']['m1_eyecam_right']['position'][:, 1],tracking_data['body_parts']['m1_eyecam_right']['likelihood']]))
+        nose_tip = np.transpose(np.array([tracking_data['body_parts']['m1_nose_tip']['position'][:, 0],tracking_data['body_parts']['m1_nose_tip']['position'][:, 1],tracking_data['body_parts']['m1_nose_tip']['likelihood']]))
+        eye_mid = np.array([[(eye_left[c, 0] + eye_right[c, 0]) / 2, (eye_left[c, 1] + eye_right[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+        head_mid = np.array([[(eye_mid[c, 0] + nose_tip[c, 0]) / 2, (eye_mid[c, 1] + nose_tip[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+
+        # now look at the places where likelihood_threshold>0.99
+        min_likelihood = 0.99
+        indices_99 = np.array([i for i in range(len(eye_left[:, 2])) if eye_left[:, 2][i] > min_likelihood and eye_right[:, 2][i] > min_likelihood and nose_tip[:, 2][i] > min_likelihood])
+        # look at the mean distance head_mid and eye_mid
+        distance_99 = np.mean(np.sqrt((eye_mid[indices_99][:, 0] - head_mid[indices_99][:, 0]) ** 2 + (eye_mid[indices_99][:, 1] - head_mid[indices_99][:, 1]) ** 2))
+        # calculate theta = dx/dy
+        theta = np.arctan((eye_right[:, 0] - eye_left[:, 0]) / (eye_right[:, 1] - eye_left[:, 1]))
+        # x_center = eye_mid + r*cos(theta). Here cos(theta) is taken absolute and there is looked for criteria when cos(theta) is positive or negative
+        mid_estimate_x = eye_mid[:, 0] + distance_99 * np.array([np.abs(np.cos(theta[c])) if eye_left[c, 1] < eye_right[c, 1] else -np.abs(np.cos(theta[c])) for c in range(len(theta))])
+        # y_center = eye_mid + r*sin(theta). Here sin(theta) is taken absolute and there is looked for criteria when sin(theta) is positive or negative
+        mid_estimate_y = eye_mid[:, 1] + distance_99 * np.array([np.abs(np.sin(theta[c])) if eye_left[c, 0] > eye_right[c, 0] else -np.abs(np.sin(theta[c])) for c in range(len(theta))])
+
+        # load the amount of pixels per cm
+        pix_per_cm = helpers.get_pixels_per_centimeter(rec_path, video='rpi_camera_' + str(camera_number),marker1='corner_left_left', marker2='corner_lower_right')
+        # look at the cm reference frame and where (x,y) for head center is and what the radius is in pixels
+        mid_estimate_x_cm = mid_estimate_x / pix_per_cm
+        mid_estimate_y_cm = mid_estimate_y / pix_per_cm
+        r = whisker_radius * pix_per_cm
+
+        body_parts_m2 = [body_part for body_part in tracking_data['body_parts'].keys() if 'm2' in body_part.split('_')] #list of m2 body parts
+        fig,ax = plt.subplots(ncols=len(body_parts_m2),figsize=[15,5])
+        for i,body_part_m2 in enumerate(body_parts_m2):
+            body_part_x_cm = tracking_data['body_parts'][body_part_m2]['position'][:,0] #list of x values of bodypart
+            body_part_y_cm = tracking_data['body_parts'][body_part_m2]['position'][:, 1] #list of x values of bodypart
+            distance_cm = np.sqrt( (body_part_x_cm-mid_estimate_x_cm)**2 + (body_part_y_cm-mid_estimate_y_cm)**2 ) #distance in cm from head center
+            tracking_data['body_parts'][body_part_m2]['inside_whisker_range'] = {}
+            for eye in ['left', 'right']:
+                distance_cm_eye_closed = np.array(
+                    [j if i in tracking_data['eye_closed_interval'][eye] else np.nan for i, j in
+                     enumerate(distance_cm)])  # filtered out the intervals with closed eyes
+                distance_cm_effective_list = distance_cm_eye_closed[
+                    np.isnan(distance_cm_eye_closed) == False]  # get out all the nan
+                true_values = len([distance for distance in distance_cm_effective_list if distance < whisker_radius])
+                false_values = len([distance for distance in distance_cm_effective_list if distance > whisker_radius])
+                tracking_data['body_parts'][body_part_m2]['inside_whisker_range'][eye] = {}
+                tracking_data['body_parts'][body_part_m2]['inside_whisker_range'][eye]['inside (#)'] = true_values
+                tracking_data['body_parts'][body_part_m2]['inside_whisker_range'][eye]['inside (%)'] = str(
+                    true_values / (true_values + false_values) * 100) + '%'
+                tracking_data['body_parts'][body_part_m2]['inside_whisker_range'][eye]['outside (#)'] = false_values
+                tracking_data['body_parts'][body_part_m2]['inside_whisker_range'][eye]['outside (%)'] = str(
+                    false_values / (true_values + false_values) * 100) + '%'
+
+                mean = np.mean(distance_cm_effective_list)
+                std = np.std(distance_cm_effective_list)
+                ax[i].hist(distance_cm_effective_list, bins=10, range=(mean - 3 * std, mean + 3 * std),
+                           label='{}'.format(len(distance_cm_effective_list)))
+                ax[i].set_title(body_part_m2)
+                ax[i].legend()
+                print(eye, body_part_m2)
+                print(tracking_data['body_parts'][body_part_m2]['inside_whisker_range'])
+            fig.show()
+
+    return tracking_data,eye_data,mid_estimate_x,mid_estimate_y,r,pix_per_cm,eye_left,eye_right,nose_tip,eye_mid,head_mid
+
+db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
+mouse1 = ['M4081']
+tracking_data,eye_data,mid_estimate_x,mid_estimate_y,r,pix_per_cm,eye_left,eye_right,nose_tip,eye_mid,head_mid = cli_whisker_analysis(db_path1,mouse1)
+
+
+
+
+
+
+
+def cli_whisker_analysis(db_path,mouse=None,camera_number=6,whisker_radius=3):
+
+    assert camera_number in [5, 6]
+
+    mouse_ids = list(mouse)
+    for mouse_id in mouse_ids:
+
+        recordings_mouse = get_recordings_mouse(mouse_id)
+        rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
+
+        # load tracking data (in egocentric reference frame)
+        tracking_data = helpers.load_tracking_data(rec_path, video='rpi_camera_' + str(camera_number),min_likelihood=.99, unit='cm')
+        eye_data = load_eye_closure_data(rec_path)
+        # add speed and averaged_speed to the tracking data for each bodypart
+        tracking_data = func_speed_tracking_data(tracking_data)
+        # load eye closure data
+        # add averaged speed to eye data for each body part and each eye_timestamps
+        eye_data = func_speed_eye_data(tracking_data, eye_data)
+        # add the distance to m2 body parts to the tracking and eye data. And for the eye data also the closed eye speed.
+        tracking_data, eye_data = func_abs_distance(tracking_data, eye_data)
+        # add the intervals where the eyes are closed to the tracking_data (so with tracking_data timestamps)
+        tracking_data = closed_eye_tracking_data(tracking_data, eye_data)
+
+
+        # load the amount of pixels per cm
+        pix_per_cm = helpers.get_pixels_per_centimeter(rec_path, video='rpi_camera_' + str(camera_number),marker1='corner_left_left', marker2='corner_lower_right')
+        # Then make a lists of left eye, right eye, nose tip, [[x0,y0,likelihood0],[x1,y1,likelihood1],...]list where the likelihood>0.99 for all parts.
+        eye_left = np.transpose(np.array([tracking_data['body_parts']['m1_eyecam_left']['position'][:,0]*pix_per_cm,tracking_data['body_parts']['m1_eyecam_left']['position'][:,1]*pix_per_cm,tracking_data['body_parts']['m1_eyecam_left']['likelihood']]))
+        eye_right = np.transpose(np.array([tracking_data['body_parts']['m1_eyecam_right']['position'][:, 0]*pix_per_cm,tracking_data['body_parts']['m1_eyecam_right']['position'][:, 1]*pix_per_cm,tracking_data['body_parts']['m1_eyecam_right']['likelihood']]))
+        nose_tip = np.transpose(np.array([tracking_data['body_parts']['m1_nose_tip']['position'][:, 0]*pix_per_cm,tracking_data['body_parts']['m1_nose_tip']['position'][:, 1]*pix_per_cm,tracking_data['body_parts']['m1_nose_tip']['likelihood']]))
+        eye_mid = np.array([[(eye_left[c, 0] + eye_right[c, 0]) / 2, (eye_left[c, 1] + eye_right[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+        head_mid = np.array([[(eye_mid[c, 0] + nose_tip[c, 0]) / 2, (eye_mid[c, 1] + nose_tip[c, 1]) / 2] for c in range(len(tracking_data['timestamps']))])
+
+        # now look at the places where likelihood_threshold>0.99
+        min_likelihood = 0.99
+        indices_99 = np.array([i for i in range(len(eye_left[:, 2])) if eye_left[:, 2][i] > min_likelihood and eye_right[:, 2][i] > min_likelihood and nose_tip[:, 2][i] > min_likelihood])
+        # look at the mean distance head_mid and eye_mid
+        distance_99 = np.mean(np.sqrt((eye_mid[indices_99][:, 0] - head_mid[indices_99][:, 0]) ** 2 + (eye_mid[indices_99][:, 1] - head_mid[indices_99][:, 1]) ** 2))
+        # calculate theta = dx/dy
+        theta = np.arctan((eye_right[:, 0] - eye_left[:, 0]) / (eye_right[:, 1] - eye_left[:, 1]))
+        # x_center = eye_mid + r*cos(theta). Here cos(theta) is taken absolute and there is looked for criteria when cos(theta) is positive or negative
+        mid_estimate_x = eye_mid[:, 0] + distance_99 * np.array([np.abs(np.cos(theta[c])) if eye_left[c, 1] < eye_right[c, 1] else -np.abs(np.cos(theta[c])) for c in range(len(theta))])
+        # y_center = eye_mid + r*sin(theta). Here sin(theta) is taken absolute and there is looked for criteria when sin(theta) is positive or negative
+        mid_estimate_y = eye_mid[:, 1] + distance_99 * np.array([np.abs(np.sin(theta[c])) if eye_left[c, 0] > eye_right[c, 0] else -np.abs(np.sin(theta[c])) for c in range(len(theta))])
+
+        # look at the cm reference frame and where (x,y) for head center is and what the radius is in pixels
+        mid_estimate_x_cm = mid_estimate_x / pix_per_cm
+        mid_estimate_y_cm = mid_estimate_y / pix_per_cm
+        r = whisker_radius * pix_per_cm
+
+        body_parts_m2 = [body_part for body_part in tracking_data['body_parts'].keys() if 'm2' in body_part.split('_')] #list of m2 body parts
+        #fig,ax = plt.subplots(nrows=2,ncols=len(body_parts_m2),figsize=[15,5])
+
+        tracking_data['inside_whisker_range'] = {}
+        for j, eye in enumerate(['left', 'right']):
+            distance_inside_all_indices = np.array([])
+            for i, body_part_m2 in enumerate(body_parts_m2):
+                body_part_x_cm = tracking_data['body_parts'][body_part_m2]['position'][:, 0]  # list of x values of bodypart
+                body_part_y_cm = tracking_data['body_parts'][body_part_m2]['position'][:, 1]  # list of x values of bodypart
+                distance_cm = np.sqrt((body_part_x_cm - mid_estimate_x_cm) ** 2 + (body_part_y_cm - mid_estimate_y_cm) ** 2)  # distance in cm from head center
+
+                distance_cm_closed_eye = np.array([[i,j] for i, j in enumerate(distance_cm) if i in tracking_data['eye_closed_interval'][eye] and np.isnan(j) == False])  # filter out the intervals with closed eyes and the nan values
+                distance_inside_per_bodypart = np.array([[i_j[0],i_j[1]] for i_j in distance_cm_closed_eye if i_j[1]<whisker_radius]) #look at the values that are inside the whisker radius
+                distance_inside_all_indices = np.append(distance_inside_all_indices,distance_inside_per_bodypart[:,0]) #make a big array where all the indices are in of closed eye intervals
+            distance_inside_sorted = np.unique(distance_inside_all_indices) #sort the list and remove double values, so you only have a list with indices at the moments that at least one bodypart is inside the whisker range
+            eye_closed_interval_sorted = np.unique(tracking_data['eye_closed_interval'][eye])
+            inside = np.array([i for i in tracking_data['eye_closed_interval'][eye] if i in distance_inside_sorted])
+            outside = np.array([i for i in tracking_data['eye_closed_interval'][eye] if i not in distance_inside_sorted])
+            tracking_data['inside_whisker_range'][eye] = {}
+            tracking_data['inside_whisker_range'][eye]['inside / total (#)'] = str(len(inside)) + ' / ' + str(len(inside)+len(outside))
+            tracking_data['inside_whisker_range'][eye]['inside (%)'] = str(len(inside)/(len(inside)+len(outside))*100) + '%'
+                #Make a plan to get from the list of indices per body part the closest body part each time and then the index when eyes are closed
+                #maybe I already wrote this in a function
+
+                #mean = np.mean(distance_cm_effective_list[:, 1])
+                #std = np.std(distance_cm_effective_list[:, 1])
+                # ax[j][i].hist(distance_cm_effective_list,bins=10,range=(mean-3*std,mean+3*std),label='{}'.format(len(distance_cm_effective_list)))
+                # ax[j][i].set_title(body_part_m2)
+                # ax[j][i].legend()
+
+                #true_values = len([distance for distance in distance_cm_effective_list if distance < whisker_radius])
+                #false_values = len([distance for distance in distance_cm_effective_list if distance > whisker_radius])
+                #tracking_data['body_parts'][body_part_m2]['inside_whisker_range'][eye] = {}
+                #tracking_data['body_parts'][body_part_m2]['inside_whisker_range'][eye]['inside / total (#)'] = str(true_values) + ' / ' + str(true_values+false_values)
+                #tracking_data['body_parts'][body_part_m2]['inside_whisker_range'][eye]['inside (%)'] = str(true_values/(true_values+false_values)*100)+'%'
+
+                #print(body_part_m2,(mean-std,mean+std))
+                #pprint.pprint(tracking_data['body_parts'][body_part_m2]['inside_whisker_range'])
+        #plt.show()
+    return tracking_data
+
+db_path1 = "/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/database"
+mouse1 = ['M3729']
+tracking_data = cli_whisker_analysis(db_path1,mouse=mouse1,camera_number=6,whisker_radius=5)
+#look at tracking_data['inside_whisker_range'] to see percentage of inside whisker range
+
