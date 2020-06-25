@@ -602,14 +602,29 @@ def func_abs_distance(tracking_data,eye_data):
     for eye in eye_data.keys():
         eye_data[eye]['distance_to_bodypart'] = {}
         eye_data[eye]['closed_eye_distance'] = {}
+        eye_data[eye]['distance_to_bodypart_shuffled'] = {}
+        eye_data[eye]['closed_eye_distance_shuffled'] = {}
         for body_part_m2 in part_names_m2:
-            distance = np.sqrt(np.sum((tracking_data['body_parts']['m1_eyecam_'+eye]['position'] - tracking_data['body_parts'][body_part_m2]['position']) ** 2, axis=1))
-            distance_interpolate_f = interpolate.interp1d(tracking_data['timestamps'],distance,fill_value='extrapolate')
+            position = tracking_data['body_parts'][body_part_m2]['position']  # set position of bodypart
+            position_shuffle = np.array([c for c in position])  # create new array, so when shuffled the old list will not be shuffled
+            distance = np.sqrt(np.sum((tracking_data['body_parts']['m1_eyecam_' + eye]['position'] - position) ** 2, axis=1)) #calculate distance between eye and m2_body_part
+            distance_interpolate_f = interpolate.interp1d(tracking_data['timestamps'], distance,fill_value='extrapolate') #make interpolation for tracking_data to eye_data
+            distance_eye_data = distance_interpolate_f(eye_data[eye]['timestamps']) #calculate distance in eye data with interp function
+            closed_eye_distance = np.asarray([distance_eye_data[c[0]:c[1] + 1] for c in eye_data[eye]['eye_closed_interval']]) #filter closed eye events
+            tracking_data['body_parts'][body_part_m2]['distance_to_' + eye + '_eye'] = distance #set distance in tracking_data
+            eye_data[eye]['distance_to_bodypart'][body_part_m2] = distance_eye_data #set distance to m2_body_part in eye data
+            eye_data[eye]['closed_eye_distance'][body_part_m2] = closed_eye_distance #set closed eye distance in eye_data
+
+            # now shuffle the time positions and do the same
+            np.random.shuffle(position)  # shuffle positions
+            distance = np.sqrt(np.sum((tracking_data['body_parts']['m1_eyecam_' + eye]['position'] - position_shuffle) ** 2, axis=1))
+            distance_interpolate_f = interpolate.interp1d(tracking_data['timestamps'], distance,fill_value='extrapolate')
             distance_eye_data = distance_interpolate_f(eye_data[eye]['timestamps'])
             closed_eye_distance = np.asarray([distance_eye_data[c[0]:c[1] + 1] for c in eye_data[eye]['eye_closed_interval']])
-            tracking_data['body_parts'][body_part_m2]['distance_to_'+eye+'_eye'] = distance
-            eye_data[eye]['distance_to_bodypart'][body_part_m2] = distance_eye_data
-            eye_data[eye]['closed_eye_distance'][body_part_m2] = closed_eye_distance
+            tracking_data['body_parts'][body_part_m2]['distance_to_' + eye + '_eye_shuffled'] = distance
+            eye_data[eye]['distance_to_bodypart_shuffled'][body_part_m2] = distance_eye_data
+            eye_data[eye]['closed_eye_distance_shuffled'][body_part_m2] = closed_eye_distance
+
     return tracking_data,eye_data
 
 
@@ -738,9 +753,7 @@ def cli_minimal_distance_bodyparts(db_path, mouse=None):
         for i in range(len(eyes)):
             for j in range(2):
                 if j == 0:  # minimal distance
-                    distance_bodypart_matrix = np.array(
-                        [np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][m2_bodypart]) for m2_bodypart in
-                         m2_bodyparts])
+                    distance_bodypart_matrix = np.array([np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][m2_bodypart]) for m2_bodypart in m2_bodyparts])
                     min_distance = np.nanmin(distance_bodypart_matrix, axis=0)
                     ax[i][j].hist(min_distance, bins=16, range=(0, 30))
                     ax[i][j].set_title('%s %s' % (eyes[i], ' eye minimal distance'))
@@ -748,12 +761,8 @@ def cli_minimal_distance_bodyparts(db_path, mouse=None):
                     ax[i][j].set_ylabel('#counts')
                     ax[i][j].set_xticks([5, 15, 25])
                 if j == 1:  # closest bodypart
-                    distance_bodypart_matrix = np.array(
-                        [np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][m2_bodypart]) for m2_bodypart in
-                         m2_bodyparts])
-                    closest_bodypart = [i for c in range(len(distance_bodypart_matrix[0])) for i, j in
-                                        enumerate(distance_bodypart_matrix[:, c]) if
-                                        j == np.nanmin(distance_bodypart_matrix[:, c])]
+                    distance_bodypart_matrix = np.array([np.concatenate(eye_data[eyes[i]]['closed_eye_distance'][m2_bodypart]) for m2_bodypart in m2_bodyparts])
+                    closest_bodypart = [i for c in range(len(distance_bodypart_matrix[0])) for i, j in enumerate(distance_bodypart_matrix[:, c]) if j == np.nanmin(distance_bodypart_matrix[:, c])]
                     ax[i][j].hist(closest_bodypart, bins=8, range=(0, 8), align='left')
                     ax[i][j].set_title('%s %s' % (eyes[i], ' eye closest bodypart'))
                     ax[i][j].set_ylabel('#counts')
@@ -771,8 +780,7 @@ def cli_minimal_distance_bodyparts(db_path, mouse=None):
 
 
 
-def cli_closed_eye_nan_counts(db_path,
-                         mouse=None):
+def cli_closed_eye_nan_counts(db_path,mouse=None):
     mouse_ids = list(mouse)
     for mouse_id in mouse_ids:
 
@@ -780,10 +788,7 @@ def cli_closed_eye_nan_counts(db_path,
         rec_path = op.join(db_path, recordings_mouse['session'], recordings_mouse['interaction'])
 
         # load tracking data (in egocentric reference frame)
-        tracking_data = helpers.load_tracking_data(rec_path,
-                                                   video='rpi_camera_6',
-                                                   min_likelihood=.99,
-                                                   unit='cm')
+        tracking_data = helpers.load_tracking_data(rec_path,video='rpi_camera_6',min_likelihood=.99,unit='cm')
 
         #add speed and averaged_speed to the tracking data for each bodypart
         tracking_data = func_speed_tracking_data(tracking_data)
@@ -804,11 +809,8 @@ def cli_closed_eye_nan_counts(db_path,
             nan_dict[eye] = {}
             for bodypart in m2_bodyparts:
                 nan_dict[eye][bodypart] = {}
-                nan_dict[eye][bodypart]["#nan"] = len(
-                    [c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)])
-                nan_dict[eye][bodypart]["%nan"] = str(round(100 * (len(
-                    [c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)]) / len(
-                    np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]))))) + "%"
+                nan_dict[eye][bodypart]["#nan"] = len([c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)])
+                nan_dict[eye][bodypart]["%nan"] = str(round(100 * (len([c for c in np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]) if np.isnan(c)]) / len(np.concatenate(eye_data[eye]['closed_eye_distance'][bodypart]))))) + "%"
         pprint.pprint(nan_dict)
 
 

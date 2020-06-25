@@ -5,6 +5,7 @@ import imageio
 import os.path
 import time
 from scipy.interpolate import interp1d
+from matplotlib.transforms import Bbox
 
 t1 = time.time()
 
@@ -316,17 +317,22 @@ eyelid_left_likelihood_binary = func_binary(eyelid_left_likelihood,eyelid_left_l
 eyelid_right_likelihood_binary = func_binary(eyelid_right_likelihood,eyelid_right_likelihood_columns,threshold)
 
 
-
-
-
-def func_plot_show(var_likelihood_binary,var_likelihood,var_likelihood_columns):
-    fig, (ax1, ax2, ax3) = plt.subplots(nrows=1, ncols=3,figsize=(10.0,4.8))
+def func_plot_show(var_likelihood_binary,var_likelihood,var_likelihood_columns): #adapted for presentation
+    fig, ax = plt.subplots(nrows=1, ncols=1,figsize=(6.0,4.0))
+    if var_likelihood_columns[0][1] == 'm1_eyecam_left':
+        titles = np.array(['mouse 1 ' + c.split('_')[1] + ' ' + c.split('_')[2] if c.split('_')[0] == 'm1' else 'mouse 2 ' +c.split('_')[1] + ' ' +c.split('_')[2] for c in np.array(var_likelihood_columns)[:, 1]])
+    if var_likelihood_columns[0][1] == 'nasal_edge':
+        titles = np.array([c.replace('_',' ') for c in np.array(var_likelihood_columns)[:, 1]])
     for j in range(len(var_likelihood_columns)):  # going through each body part
-        ax2.plot(var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
-        ax3.plot(list(var_likelihood[var_likelihood_columns[j]].index / len(var_likelihood[var_likelihood_columns[j]])),var_likelihood_binary[j],label="{}".format(var_likelihood_columns[j][1]))  # plot the line of the binary likelihood
-        ax1.plot([0, 1], [0, 0], label="{}".format(var_likelihood_columns[j][1]))
-        ax1.legend()  # making the legend
-    fig.show()  # saving the picture at high quality
+        title = titles[j]
+        ax.plot(var_likelihood_binary[j],label="{}".format(title))  # plot the line of the binary likelihood
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        ax.set_xticks([0,5000,10000,15000,20000])
+        ax.set_xlabel('Frame count')
+        ax.set_yticklabels([])
+        ax.set_yticks([])
+    fig.tight_layout()
+    fig.show()  # saving the picture at dpi=300 for quite well quality
 
 #func_plot_show(mice_cam5_likelihood_binary,mice_cam5_likelihood,mice_cam5_likelihood_columns)
 #func_plot_show(mice_cam6_likelihood_binary,mice_cam6_likelihood,mice_cam6_likelihood_columns)
@@ -450,6 +456,54 @@ def func_x_y_eyelid_plot(var_mice_timestamps, var_mice_x_y, var_mice_x_y_columns
 #func_x_y_eyelid_plot(eyelid_left_timestamps, eyelid_left_y, eyelid_left_y_columns,figure_save_path,"eyelid_left")
 #func_x_y_eyelid_plot(eyelid_right_timestamps, eyelid_right_x, eyelid_right_x_columns,figure_save_path,"eyelid_right")
 #func_x_y_eyelid_plot(eyelid_right_timestamps, eyelid_right_y, eyelid_right_y_columns,figure_save_path,"eyelid_right")
+
+
+
+
+
+def func_four_images(var_data_up_left,var_data_up_right,var_data_down_left,var_data_down_right): #Takes the data (reader.get_data(i)) of four same-size-pictures and returns the data (same data format) of the four pictures combined.
+    var_data_up = [] #combining the up left and up right pictures
+    for var_i in range(len(var_data_up_left)): #look at each horizontal row of pixels in the image
+        var_horizantal_pixels_up = np.concatenate((var_data_up_left[var_i], var_data_up_right[var_i])) #combining the 2 horizontal rows from the pictures
+        var_data_up.append(var_horizantal_pixels_up) #append each row to the list. Each item in this list is a horizontal row, so this list is VERTICAL
+    var_data_up = np.asarray(var_data_up) #make a ndarray of the list, so that the writer function can write a new picture
+
+    var_data_down = [] #combining the down left and down right pictures
+    for var_j in range(len(var_data_down_left)): #look at each horizontal row of pixels in the image
+        var_horizontal_pixels_down = np.concatenate((var_data_down_left[var_j], var_data_down_right[var_j])) #combining the 2 horizontal rows from the pictures
+        var_data_down.append(var_horizontal_pixels_down) #append each row to the list. Each item in this list is a horizontal row, so this list is VERTICAL
+    var_data_down = np.asarray(var_data_down) #make a ndarray of the list, so that the writer function can write a new picture
+
+    var_data = np.concatenate((var_data_up, var_data_down)) #here the the two arrays are combined to a tuple, and then the tuple will form an array. This way the combined two arrays still form an array.
+    return var_data #return the data of the new picture with four pictures combined
+
+
+
+
+
+def eyes_picture(var_video_path_raw,var_video_path_tracked,var_output_path,i_open=1400,i_closed=35): #takes input path of raw video, of tracked video, output path, i=1400 of open eyes and i=35 of closed_eyes
+    with imageio.get_reader(var_video_path_raw) as var_video:
+        var_data_raw_closed = var_video.get_data(i_closed)
+        var_data_raw_open = var_video.get_data(i_open)
+    with imageio.get_reader(var_video_path_tracked) as var_video:
+        var_data_tracked_closed = var_video.get_data(i_closed)
+        var_data_tracked_open = var_video.get_data(i_open)
+    var_data = func_four_images(var_data_raw_open,var_data_tracked_open,var_data_raw_closed,var_data_tracked_closed)
+    h = len(var_data)
+    w = len(var_data[0])
+    dpi = 100
+    fig, ax = plt.subplots(1, figsize=(w/dpi, h/dpi), dpi=dpi)
+    ax.set_position([0, 0, 1, 1])
+    img = ax.imshow(var_data)
+    ax.axis("off")
+    fig.savefig(var_output_path,bbox_inches=Bbox([[0,0], [w/dpi, h/dpi]]),dpi=dpi)
+
+#input_path_raw = '/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/raw_video/rpi_camera_4.mp4'
+#input_path_tracked = '/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/tracked_video/rpi_camera_4DLC_resnet50_M3728_eyelidMar25shuffle1_1030000_labeled.mp4'
+#output_path = '/Users/samsuidman/Desktop/video_test_map/open_eye_not_tracked.png'
+#picture(input_path_raw,input_path_tracked,output_path,1400,35)
+
+
 
 t2 = time.time()
 

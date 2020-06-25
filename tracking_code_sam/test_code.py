@@ -1249,3 +1249,54 @@ mouse1 = ['M3729']
 tracking_data = cli_whisker_analysis(db_path1,mouse=mouse1,camera_number=6,whisker_radius=5)
 #look at tracking_data['inside_whisker_range'] to see percentage of inside whisker range
 
+
+
+
+
+
+import imageio
+import matplotlib.pyplot as plt
+from matplotlib.transforms import Bbox
+def eyes_picture(var_video_path_raw,var_video_path_tracked,var_output_path,i_open,i_closed):
+    with imageio.get_reader(var_video_path_raw) as var_video:
+        var_data_raw_closed = var_video.get_data(i_closed)
+        var_data_raw_open = var_video.get_data(i_open)
+    with imageio.get_reader(var_video_path_tracked) as var_video:
+        var_data_tracked_closed = var_video.get_data(i_closed)
+        var_data_tracked_open = var_video.get_data(i_open)
+    var_data = func_four_images(var_data_raw_open,var_data_tracked_open,var_data_raw_closed,var_data_tracked_closed)
+    h = len(var_data)
+    w = len(var_data[0])
+    dpi = 100
+    fig, ax = plt.subplots(1, figsize=(w/dpi, h/dpi), dpi=dpi)
+    ax.set_position([0, 0, 1, 1])
+    img = ax.imshow(var_data)
+    ax.axis("off")
+    fig.savefig(var_output_path,bbox_inches=Bbox([[0,0], [w/dpi, h/dpi]]),dpi=dpi)
+
+input_path_raw = '/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/raw_video/rpi_camera_4.mp4'
+input_path_tracked = '/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/tracked_video/rpi_camera_4DLC_resnet50_M3728_eyelidMar25shuffle1_1030000_labeled.mp4'
+output_path = '/Users/samsuidman/Desktop/video_test_map/open_eye_not_tracked.png'
+picture(input_path_raw,input_path_tracked,output_path,1400,35)
+
+
+
+import imageio
+import matplotlib.pyplot as plt
+from matplotlib.transforms import Bbox
+
+def snapshot(video_path,output_path,i,dpi=100):
+    with imageio.get_reader(video_path) as reader:
+        data = reader.get_data(i)
+    h = len(data)
+    w = len(data[0])
+    fig, ax = plt.subplots(1, figsize=(w/dpi, h/dpi), dpi=dpi)
+    ax.imshow(data)
+    ax.set_position([0, 0, 1, 1])
+    img = ax.imshow(data)
+    ax.axis("off")
+    fig.savefig(output_path,bbox_inches=Bbox([[0,0], [w/dpi, h/dpi]]),dpi=dpi)
+
+path_to_video = '/Users/samsuidman/Desktop/files_from_computer_arne/shared_data/social_interaction_eyetracking/h5_video_results/video/M3728/together/cam4/raw_video/rpi_camera_4.mp4'
+path_to_save = '/Users/samsuidman/Desktop/video_test_map/open_eye_not_tracked.png'
+snapshot(path_to_video,path_to_save,1000,100)
